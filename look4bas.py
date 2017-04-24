@@ -102,7 +102,7 @@ def list_basissets(l, highlight_elements=[], colour=True, elements=False, crop=T
     if elements:
       # 2/3 for description, but only if its needed
       # and at least 1/3 for elements:
-      maxlen_descr = min(maxlen_descr,max(50,2*rem//3))
+      maxlen_descr = min(maxlen_descr,max(50,2*rem//3, rem-maxlen_elem-1))
       maxlen_elem = max(50,rem - maxlen_descr)
     else:
       maxlen_descr=rem
@@ -160,12 +160,16 @@ def contains_elements(b, le):
 
 def main():
   parser = argparse.ArgumentParser(
-    description="Commandline tool to search and download Gaussian basis sets.")
+    description="Commandline tool to search and download Gaussian basis sets. " \
+    "The tool downloads (and caches) the list of basis sets from the emsl basis set exchange" \
+    " (https://bse.pnl.gov/bse/portal) for offline search and allows to easily download individual basis sets from it.")
 
   parser.add_argument("--uncontracted", dest="contracted", action="store_false",
                       help="Receive uncontracted basis sets")
   parser.add_argument("--force-update", action="store_true",
                       help="Force the cached EMSL BSE database to be updated.")
+  parser.add_argument("--print-elements", action="store_true",
+                      help="When performing --list, print the elements for which a basis set is defined as well.")
   parser.add_argument("pattern", nargs='?', default=None, type=str,
                       help="A regular expression to match against the basis set name (Same as -e)")
 
@@ -178,10 +182,13 @@ def main():
 
   filters = parser.add_argument_group("Basisset filters")
   filters.add_argument("--elements", metavar="element", nargs='+',
-                       help="List of elements the basis set should contain")
+                       help="List of elements the basis set should contain. Implies '--print-elements'.")
   filters.add_argument("-e", "--regexp", dest="regexp",
+                       metavar="regexp",
                        help="A regular expression to macth against the basis set name (same as 'pattern')")
-  filters.add_argument("--description-regexp", help="Regular expression the basis set description should match")
+  filters.add_argument("-d", "--description-regexp", metavar="regexp",
+                       dest="description_regexp",
+                       help="Regular expression the basis set description should match")
   filters.add_argument("-i", "--ignore-case", action="store_true",dest="ignorecase", 
                        help="Ignore case when matching patterns")
   args = parser.parse_args()
@@ -227,7 +234,7 @@ def main():
     for fmt in args.download:
       download_basissets(li, format=fmt, contraction=args.contracted)
   else:
-    list_basissets(li,highlight_elements=highlight_elements)
+    list_basissets(li,highlight_elements=highlight_elements, elements=args.print_elements)
 
 if __name__ == "__main__":
   main()
