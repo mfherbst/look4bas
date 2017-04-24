@@ -108,8 +108,6 @@ def list_basissets(l, highlight_elements=[], colour=True, elements=False, crop=T
       maxlen_descr=rem
       maxlen_elem=0
 
-  print("cols",cols," extra", extra, " name", maxlen_name, " elem", maxlen_elem, " descr", maxlen_descr, "  total", maxlen_name + maxlen_descr + maxlen_elem + extra)
-
   # Build format string:
   fstr=yellow+"{name:"+ str(maxlen_name) + "s}"+white
   fstr+="  {description:"+str(maxlen_descr)+"s}"
@@ -164,8 +162,12 @@ def main():
   parser = argparse.ArgumentParser(
     description="Commandline tool to search and download Gaussian basis sets.")
 
+  parser.add_argument("--uncontracted", dest="contracted", action="store_false",
+                      help="Receive uncontracted basis sets")
   parser.add_argument("--force-update", action="store_true",
                       help="Force the cached EMSL BSE database to be updated.")
+  parser.add_argument("pattern", nargs='?', default=None, type=str,
+                      help="A regular expression to match against the basis set name (Same as -e)")
 
   mode = parser.add_mutually_exclusive_group()
   mode.add_argument("--list", action='store_true', help="List the matching basis sets (Default)")
@@ -177,21 +179,25 @@ def main():
   filters = parser.add_argument_group("Basisset filters")
   filters.add_argument("--elements", metavar="element", nargs='+',
                        help="List of elements the basis set should contain")
-  filters.add_argument("-e", "--regexp", dest="regexp", help="Regular expression the basis set name should match")
+  filters.add_argument("-e", "--regexp", dest="regexp",
+                       help="A regular expression to macth against the basis set name (same as 'pattern')")
   filters.add_argument("--description-regexp", help="Regular expression the basis set description should match")
   filters.add_argument("-i", "--ignore-case", action="store_true",dest="ignorecase", 
                        help="Ignore case when matching patterns")
   args = parser.parse_args()
 
-  # Some defaults:
-  case_transform = lambda s: s
-  highlight_elements=[]
-  filters = []
-
+  # Initial parsing:
   if args.download is not None:
     # If we want download, than append at least the default
     # format to download
     args.download.extend(config.default_download_formats)
+  if args.pattern is not None:
+    args.regexp = args.pattern
+
+  # Some defaults:
+  case_transform = lambda s: s
+  highlight_elements=[]
+  filters = []
 
   # Parse args:
   if args.ignorecase:
@@ -219,7 +225,7 @@ def main():
 
   if args.download:
     for fmt in args.download:
-      download_basissets(li, format=fmt)
+      download_basissets(li, format=fmt, contraction=args.contracted)
   else:
     list_basissets(li,highlight_elements=highlight_elements)
 
