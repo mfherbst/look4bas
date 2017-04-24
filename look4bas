@@ -171,7 +171,8 @@ def main():
   parser.add_argument("--print-elements", action="store_true",
                       help="When performing --list, print the elements for which a basis set is defined as well.")
   parser.add_argument("pattern", nargs='?', default=None, type=str,
-                      help="A regular expression to match against the basis set name (Same as -e)")
+                      help="A regular expression to match against the basis set name *or* the description." \
+                      "So if either description or basis set name matches this, the basis set is considered a match.")
 
   mode = parser.add_mutually_exclusive_group()
   mode.add_argument("--list", action='store_true', help="List the matching basis sets (Default)")
@@ -183,12 +184,11 @@ def main():
   filters = parser.add_argument_group("Basisset filters")
   filters.add_argument("--elements", metavar="element", nargs='+',
                        help="List of elements the basis set should contain. Implies '--print-elements'.")
-  filters.add_argument("-e", "--regexp", dest="regexp",
-                       metavar="regexp",
-                       help="A regular expression to macth against the basis set name (same as 'pattern')")
+  filters.add_argument("-e", "--regexp", dest="name_regexp",metavar="regexp",
+                       help="A regular expression to match *only* against the basis set name.")
   filters.add_argument("-d", "--description-regexp", metavar="regexp",
                        dest="description_regexp",
-                       help="Regular expression the basis set description should match")
+                       help="Regular expression the basis set description should match.")
   filters.add_argument("-i", "--ignore-case", action="store_true",dest="ignorecase", 
                        help="Ignore case when matching patterns")
   args = parser.parse_args()
@@ -198,8 +198,6 @@ def main():
     # If we want download, than append at least the default
     # format to download
     args.download.extend(config.default_download_formats)
-  if args.pattern is not None:
-    args.regexp = args.pattern
 
   # Some defaults:
   case_transform = lambda s: s
@@ -210,15 +208,21 @@ def main():
   if args.ignorecase:
     case_transform = lambda s: s.lower()
 
+  # Build filters
   if args.elements:
     highlight_elements=args.elements
     filters.append(lambda b: contains_elements(b,args.elements))
-  if args.regexp:
-    reg = re.compile(case_transform(args.regexp))
-    filters.append(lambda b : reg.match(case_transform(b["name"])))
+  if args.pattern:
+    # Matches if name *or* description is matched
+    reg_pattern = re.compile(case_transform(args.pattern))
+    filters.append(lambda b: reg_pattern.search(case_transform(b["name"]))
+                   or reg_pattern.search(case_transform(b["description"])))
+  if args.name_regexp:
+    reg_name = re.compile(case_transform(args.name_regexp))
+    filters.append(lambda b : reg_name.search(case_transform(b["name"])))
   if args.description_regexp:
-    reg = re.compile(case_transform(args.description_regexp))
-    filters.append(lambda b : reg.match(case_transform(b["description"])))
+    reg_descr = re.compile(case_transform(args.description_regexp))
+    filters.append(lambda b : reg_descr.search(case_transform(b["description"])))
 
   # Predicate which is true iff all filters are true
   # for a particular b:
