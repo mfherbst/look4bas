@@ -152,12 +152,6 @@ def download_basissets(l, format, contraction=True):
     with open(path, "w") as f:
       f.write(emsl.download_basisset(b,format))
 
-def contains_elements(b, le):
-  """Filter which tests whether a basis contains a list of elements"""
-  for e in le:
-    if not e in b["elements"]: return False
-    return True
-
 def main():
   parser = argparse.ArgumentParser(
     description="Commandline tool to search and download Gaussian basis sets. " \
@@ -210,8 +204,9 @@ def main():
 
   # Build filters
   if args.elements:
+    args.elements=set(args.elements)
     highlight_elements=args.elements
-    filters.append(lambda b: contains_elements(b,args.elements))
+    filters.append(lambda b: args.elements.issubset(set(b["elements"])))
   if args.pattern:
     # Matches if name *or* description is matched
     reg_pattern = re.compile(case_transform(args.pattern))
