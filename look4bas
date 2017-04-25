@@ -37,8 +37,7 @@ def get_basisset_list(force_update=False):
 
   os.makedirs(os.path.dirname(config.emsl_cache), exist_ok=True)
   cache = emsl2yaml.emsl2yaml()
-  with open(config.emsl_cache, "w") as f:
-    f.write(cache)
+  open(config.emsl_cache, "w").write(cache)
   return yaml.safe_load(StringIO(cache))["list"]
 
 __strip_ANSI_escapes = re.compile(r"""
@@ -172,8 +171,8 @@ def download_basissets(l, fmt):
       continue
 
     print("   ", b["name"], " to ", path)
-    with open(path, "w") as f:
-      f.write(emsl.download_basisset(b,fmt))
+    data = emsl.download_basisset(b,fmt)
+    open(path, "w").write(data)
 
 def main():
   parser = argparse.ArgumentParser(

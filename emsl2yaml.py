@@ -36,8 +36,8 @@ def main():
   if not ext in [ '.yml', '.yaml' ]:
     args.output += '.yaml'
 
-  with open(args.output, "w") as f:
-    f.write(emsl2yaml())
+  data = emsl2yaml()
+  open(args.output, "w").write(data)
 
 if __name__ == "__main__":
   main()
