@@ -70,14 +70,14 @@ available_list_formats=[ f for b in __list_formats_base for f in ("no-"+b,b)]
 def parse_list_format(format_list):
   """Parse the format for the list_basissets function
   and return a dictionary key -> value from it"""
-  ret={}
-  for flag in __list_formats_base:
-    if flag in format_list:
+  ret={ flag: None for flag in __list_formats_base }
+  negate_flag = lambda flag : flag[3:] if flag.find("no-") == 0 else "no-"+flag
+
+  for flag in format_list:
+    if flag in __list_formats_base:
       ret[flag]=True
-    elif "no-"+flag in format_list:
-      ret[flag]=False
-    else:
-      ret[flag]=None
+    elif negate_flag(flag) in __list_formats_base:
+      ret[negate_flag(flag)]=False
   return ret
 
 
@@ -179,25 +179,14 @@ def main():
   parser = argparse.ArgumentParser(
     description="Commandline tool to search and download Gaussian basis sets. " \
     "The tool downloads (and caches) the list of basis sets from the emsl basis set exchange" \
-    " (https://bse.pnl.gov/bse/portal) for offline search and allows to easily download individual basis sets from it.")
+    " (https://bse.pnl.gov/bse/portal) for offline search and allows to easily download individual basis sets from it.",
+  )
 
-  parser.add_argument("pattern", nargs='?', default=None, type=str,
-                      help="A regular expression to match against the basis set name *or* the description." \
-                      "So if either description or basis set name matches this, the basis set is considered a match.")
   parser.add_argument("--force-update", action="store_true",
                       help="Force the cached EMSL BSE database to be updated.")
   parser.add_argument("--destination", default=".", type=str, metavar="directory",
                       help="When downloading basis sets using --download store them in " \
                       "this directory. (Default: '.', i.e. the current working directory")
-
-  list_formats = parser.add_mutually_exclusive_group()
-  list_formats.add_argument("--format", choices=available_list_formats, nargs="+",
-                            metavar="<format-flag>",
-                            help="Specify the format to use when basis sets are displayed.")
-  list_formats.add_argument("--extra", action="store_true",
-                            help="Use the 'extra' format to when listing basis sets. "
-                            "This is currently defined as '"
-                            + " ".join(config.list_formats["extra"]) + "'")
 
   mode = parser.add_mutually_exclusive_group()
   mode.add_argument("--list", action='store_true', help="List the matching basis sets (Default)")
@@ -207,16 +196,34 @@ def main():
                     "(Default: "+" ".join(config.default_download_formats)+") " + \
                     "to the directory specified by --destination. ")
 
+  #
+  # Filter options
+  #
   filters = parser.add_argument_group("Basisset filters")
+  filters.add_argument("pattern", nargs='?', default=None, type=str,
+                      help="A regular expression to match against the basis set name *or* the description." \
+                      "So if either description or basis set name matches this, the basis set is considered a match.")
   filters.add_argument("--elements", metavar="element", nargs='+',
                        help="List of elements the basis set should contain. Implies '--print-elements'.")
-  filters.add_argument("-e", "--regexp", dest="name_regexp",metavar="regexp",
+  filters.add_argument("--regexp", "-e", dest="name_regexp",metavar="regexp",
                        help="A regular expression to match *only* against the basis set name.")
-  filters.add_argument("-d", "--description-regexp", metavar="regexp",
+  filters.add_argument("--description-regexp", "-d", metavar="regexp",
                        dest="description_regexp",
                        help="Regular expression the basis set description should match.")
-  filters.add_argument("-i", "--ignore-case", action="store_true",dest="ignorecase", 
+  filters.add_argument("--ignore-case", "-i", action="store_true",dest="ignorecase", 
                        help="Ignore case when matching patterns")
+
+  #
+  # Formatting options
+  #
+  list_formats = parser.add_argument_group("Formatting options")
+  list_formats.add_argument("--format", choices=available_list_formats, nargs="+",
+                            metavar="flag",
+                            help="Amend the default list formatting by specifying further flags.")
+  list_formats.add_argument("--extra", action="store_true",
+                            help="Use the 'extra' format to when listing basis sets. "
+                            "This is currently defined as '"
+                            + " ".join(config.list_formats["extra"]) + "'")
   args = parser.parse_args()
 
   # Initial parsing:
@@ -231,11 +238,11 @@ def main():
   filters = []
 
   # Parse args:
-  if args.format is None:
-    if args.extra:
-      args.format = config.list_formats["extra"]
-    else:
-      args.format = config.list_formats["default"]
+  list_format = config.list_formats["default"]
+  if args.extra:
+    list_format = config.list_formats["extra"]
+  if args.format is not None:
+    list_format.extend(args.format)
 
   if args.ignorecase:
     case_transform = lambda s: s.lower()
@@ -271,7 +278,7 @@ def main():
     for fmt in args.download:
       download_basissets(li, fmt)
   else:
-    list_basissets(li,highlight_elements=highlight_elements, fmt=args.format)
+    list_basissets(li,highlight_elements=highlight_elements, fmt=list_format)
 
 if __name__ == "__main__":
   main()
