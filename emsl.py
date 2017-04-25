@@ -102,6 +102,9 @@ def download_basisset_list():
 
   basis_sets=[] # The basis set list to return
 
+  # Search expression for script tags which define basisSet objects
+  re_bassets = re.compile("basisSets\[[0-9]+\]\W*=")
+
   # Search expression for the basisSet definition lines:
   re_basdef = re.compile("^\W*basisSets\[[0-9]+\]\W*=\W*new\W*basisSet")
 
@@ -109,7 +112,11 @@ def download_basisset_list():
   re_num = re.compile("numBasis\W*=\W*([0-9]+)")
 
   # Seek through all script blocks, which contain basis definitions:
-  for script in soup.find_all("script", string=re.compile("basisSets\[[0-9]+\]\W*=")):
+  for script in soup.find_all("script"):
+    # Ignore script html tags, which do not contain the string
+    # 'basisSets[number]=' in their text
+    if not re_bassets.search(script.text):
+      continue
     lines = script.text.splitlines()
 
     numlines = [ re_num.search(l).group(1) for l in lines if re_num.search(l) ]
@@ -125,5 +132,9 @@ def download_basisset_list():
     if (len(bases) != expected_num_bases):
       raise EmslError("Deviation between expected number of basis definitions and the actual number found.")
     basis_sets.extend(bases)
-    return basis_sets
+
+  if len(basis_sets) == 0:
+    raise EmslError("No basis sets obtained from emsl bse data")
+
+  return basis_sets
 
