@@ -14,6 +14,10 @@ class config:
   emsl_cache = os.path.expanduser("~/.local/share/look4bas/emsl.yaml")
   cache_maxage = datetime.timedelta(days=3)
   default_download_formats=["Gaussian94"]
+  list_formats = {
+    "default": ["crop", "noelements", "colour"],
+    "extra":   ["crop", "elements", "colour"]
+  }
 
 def get_basisset_list(force_update=False):
   """Check whether the cached emsl list file is recent enough
@@ -57,26 +61,45 @@ def crop_to_printlen(s,l):
   while printlen(s[:i]) < l:   i+=1
   return s[:i]
 
-def list_basissets(l, highlight_elements=[], colour=True, elements=False, crop=True):
+# Flags to influence the way basis sets are listed
+__list_formats_base=["elements", "colour", "crop"]
+
+# Make sure that both positive and negative versions exist:
+available_list_formats=[ f for b in __list_formats_base for f in ("no-"+b,b)]
+
+def parse_list_format(format_list):
+  """Parse the format for the list_basissets function
+  and return a dictionary key -> value from it"""
+  ret={}
+  for flag in __list_formats_base:
+    if flag in format_list:
+      ret[flag]=True
+    elif "no-"+flag in format_list:
+      ret[flag]=False
+    else:
+      ret[flag]=None
+  return ret
+
+
+def list_basissets(l, highlight_elements=[], fmt=[]):
   """
   Pretty print the basissets in the list
-
-  elements   Print the elements in the basis set as well
-  highlight_elements    Highlight the elements in the list
-  colour    Use colour
-  crop      Use basic heuristics to crop the description string if it gets too long
+  highlight_elements    Highlight these elements in the list
+  fmt    The format to use for printing
   """
+  # Parse the format flags:
+  fmt_flags = parse_list_format(fmt)
+
   print(len(l), "basis sets matched your search:")
 
   # TODO improve this method ... it really is a compound of a hell lot of code
 
-  # Colours to use
-  yellow='\033[93m'
-  white='\033[0m'
-  if not colour:  yellow=white
-
-  # Print the elements as well?
-  if highlight_elements: elements = True
+  # Colours:
+  yellow=""
+  white=""
+  if fmt_flags["colour"]:
+    yellow='\033[93m'
+    white='\033[0m'
 
   # Determine maximal lengths of the strings we have:
   maxlen_name=0
@@ -88,7 +111,7 @@ def list_basissets(l, highlight_elements=[], colour=True, elements=False, crop=T
     maxlen_elem = max(maxlen_elem, len(",".join(bset["elements"])))
 
   # Ignore element string length if we don't care
-  if not elements: maxlen_elem=0
+  if not fmt_flags["elements"]: maxlen_elem=0
 
   # Adjust depending on width of terminal
   cols, _  =shutil.get_terminal_size(fallback=(120,50))
@@ -99,7 +122,7 @@ def list_basissets(l, highlight_elements=[], colour=True, elements=False, crop=T
     # We don't crop the name ever, so compute the remainder:
     rem = cols - maxlen_name - extra
 
-    if elements:
+    if fmt_flags["elements"]:
       # 2/3 for description, but only if its needed
       # and at least 1/3 for elements:
       maxlen_descr = min(maxlen_descr,max(50,2*rem//3, rem-maxlen_elem-1))
@@ -111,7 +134,7 @@ def list_basissets(l, highlight_elements=[], colour=True, elements=False, crop=T
   # Build format string:
   fstr=yellow+"{name:"+ str(maxlen_name) + "s}"+white
   fstr+="  {description:"+str(maxlen_descr)+"s}"
-  if elements:
+  if fmt_flags["elements"]:
     fstr += "  {elements:"+str(maxlen_elem)+"s}"
 
   for bset in l:
@@ -120,14 +143,15 @@ def list_basissets(l, highlight_elements=[], colour=True, elements=False, crop=T
     ])
     descr=bset["description"]
 
-    if crop and printlen(descr) > maxlen_descr:
-      descr=crop_to_printlen(descr,maxlen_descr-3)
-      descr+="..."
-    if crop and printlen(elems) > maxlen_elem:
-      elems=crop_to_printlen(elems,maxlen_elem-3+1)
-      # Remove the half-printed element number after the last ","
-      elems=elems[:elems.rfind(",")]
-      elems+="..."
+    if fmt_flags["crop"]:
+      if printlen(descr) > maxlen_descr:
+        descr=crop_to_printlen(descr,maxlen_descr-3)
+        descr+="..."
+      if printlen(elems) > maxlen_elem:
+        elems=crop_to_printlen(elems,maxlen_elem-3+1)
+        # Remove the half-printed element number after the last ","
+        elems=elems[:elems.rfind(",")]
+        elems+="..."
 
     print(fstr.format(name=bset["name"], description=descr, elements=elems))
 
@@ -158,22 +182,36 @@ def main():
     "The tool downloads (and caches) the list of basis sets from the emsl basis set exchange" \
     " (https://bse.pnl.gov/bse/portal) for offline search and allows to easily download individual basis sets from it.")
 
-  parser.add_argument("--uncontracted", dest="contracted", action="store_false",
-                      help="Receive uncontracted basis sets")
-  parser.add_argument("--force-update", action="store_true",
-                      help="Force the cached EMSL BSE database to be updated.")
-  parser.add_argument("--print-elements", action="store_true",
-                      help="When performing --list, print the elements for which a basis set is defined as well.")
   parser.add_argument("pattern", nargs='?', default=None, type=str,
                       help="A regular expression to match against the basis set name *or* the description." \
                       "So if either description or basis set name matches this, the basis set is considered a match.")
+  parser.add_argument("--force-update", action="store_true",
+                      help="Force the cached EMSL BSE database to be updated.")
+  parser.add_argument("--destination", default=".", type=str, metavar="directory",
+                      help="When downloading basis sets using --download store them in " \
+                      "this directory. (Default: '.', i.e. the current working directory")
+
+  list_formats = parser.add_mutually_exclusive_group()
+  list_formats.add_argument("--format", choices=available_list_formats, nargs="+",
+                            metavar="<format-flag>",
+                            help="Specify the format to use when basis sets are displayed.")
+  list_formats.add_argument("--extra", action="store_true",
+                            help="Use the 'extra' format to when listing basis sets. "
+                            "This is currently defined as '"
+                            + " ".join(config.list_formats["extra"]) + "'")
+
+  # TODO Would be better to add this to to the basis set format key somehow,
+  #      together with other parameters
+  parser.add_argument("--uncontracted", dest="contracted", action="store_false",
+                      help="Receive uncontracted basis sets")
 
   mode = parser.add_mutually_exclusive_group()
   mode.add_argument("--list", action='store_true', help="List the matching basis sets (Default)")
   mode.add_argument("--download", nargs="*", metavar='format',
                     choices=emsl.formats.keys(),
                     help="Download the matching basis sets in the requested formats "
-                    "(Default: "+" ".join(config.default_download_formats)+")")
+                    "(Default: "+" ".join(config.default_download_formats)+") " + \
+                    "to the directory specified by --destination. ")
 
   filters = parser.add_argument_group("Basisset filters")
   filters.add_argument("--elements", metavar="element", nargs='+',
@@ -199,6 +237,12 @@ def main():
   filters = []
 
   # Parse args:
+  if args.format is None:
+    if args.extra:
+      args.format = config.list_formats["extra"]
+    else:
+      args.format = config.list_formats["default"]
+
   if args.ignorecase:
     case_transform = lambda s: s.lower()
 
@@ -233,7 +277,7 @@ def main():
     for fmt in args.download:
       download_basissets(li, format=fmt, contraction=args.contracted)
   else:
-    list_basissets(li,highlight_elements=highlight_elements, elements=args.print_elements)
+    list_basissets(li,highlight_elements=highlight_elements, fmt=args.format)
 
 if __name__ == "__main__":
   main()
