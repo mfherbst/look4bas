@@ -22,13 +22,15 @@ class EmslError(Exception):
   def __init__(self,message):
     super(EmslError, self).__init__(message)
 
-def download_basisset(basisset, format, contraction=True):
+def download_basisset(basisset, format):
   """
   Obtain a basisset from the emsl library in a certain format
   for all the elements which are available
 
   Return the downloaded basis set data as a string.
   """
+  # TODO contraction=False does not seem to work and is hence
+  #      not exposed via the interface
 
   eltlist=" ".join(basisset['elements'])
   url=base_url+"/action/portlets.BasisSetAction/template/courier_content/panel/Main"
@@ -39,10 +41,9 @@ def download_basisset(basisset, format, contraction=True):
     "bsname": basisset['name'],
     "elts": eltlist,
     "format": format,
-    "minimize": 'true'
+    # Or "false" if not optimised general contractions are wanted
+    "minimize": 'true',
   }
-  if not contraction:
-    params["minimize"] = 'false'
 
   ret = requests.get(url, params)
   if not ret.ok:

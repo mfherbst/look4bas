@@ -159,14 +159,13 @@ def normalise_name(name):
   """Normalise a basis set name to yield a valid filename"""
   return "".join([ "I" if c == "/" else c for c in name.lower() ])
 
-def download_basissets(l, format, contraction=True):
-  """Download all basis sets in the list using the supplied format.
-
-  Either download contracted basis sets or not
+def download_basissets(l, fmt):
+  """Download all basis sets in the list using the supplied format
+  (in optimally contracted form).
   """
-  print("Downloading " + str(len(l)) + " basis sets in " + format + " format:")
+  print("Downloading " + str(len(l)) + " basis sets in " + fmt + " format:")
   for b in l:
-    path="./" + normalise_name(b["name"]) + "." + emsl.formats[format]
+    path="./" + normalise_name(b["name"]) + "." + emsl.formats[fmt]
 
     if os.path.exists(path):
       print("   Warn: Skipping " + path + " since file already exists")
@@ -174,7 +173,7 @@ def download_basissets(l, format, contraction=True):
 
     print("   ", b["name"], " to ", path)
     with open(path, "w") as f:
-      f.write(emsl.download_basisset(b,format))
+      f.write(emsl.download_basisset(b,fmt))
 
 def main():
   parser = argparse.ArgumentParser(
@@ -199,11 +198,6 @@ def main():
                             help="Use the 'extra' format to when listing basis sets. "
                             "This is currently defined as '"
                             + " ".join(config.list_formats["extra"]) + "'")
-
-  # TODO Would be better to add this to to the basis set format key somehow,
-  #      together with other parameters
-  parser.add_argument("--uncontracted", dest="contracted", action="store_false",
-                      help="Receive uncontracted basis sets")
 
   mode = parser.add_mutually_exclusive_group()
   mode.add_argument("--list", action='store_true', help="List the matching basis sets (Default)")
@@ -275,7 +269,7 @@ def main():
 
   if args.download:
     for fmt in args.download:
-      download_basissets(li, format=fmt, contraction=args.contracted)
+      download_basissets(li, fmt)
   else:
     list_basissets(li,highlight_elements=highlight_elements, fmt=args.format)
 
