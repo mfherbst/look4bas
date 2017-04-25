@@ -221,7 +221,7 @@ def main():
                             metavar="flag",
                             help="Amend the default list formatting by specifying further flags.")
   list_formats.add_argument("--extra", action="store_true",
-                            help="Use the 'extra' format to when listing basis sets. "
+                            help="Use the 'extra' format style when listing basis sets. "
                             "This is currently defined as '"
                             + " ".join(config.list_formats["extra"]) + "'")
   args = parser.parse_args()
