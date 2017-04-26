@@ -32,14 +32,14 @@ This is only done if the user uses the flag ``--download``, see below.
   for them, but also **list the elements** for which this basis set defines
   basis functions:
   ```bash
-  look4bas --format elements "double zeta"
+  look4bas "double zeta" --format elements
   ```
   The same thing can be achied by using the pre-defined ``--extra`` output
-  format, i.e
+  format style, i.e
   ```bash
   look4bas --extra "double zeta"
   ```
-- **Download** the findings in Gaussian94 format to the current working directory:
+- **Download** the findings in Gaussian94 basis format to the current working directory:
   ```bash
   look4bas --elements H --regex "cc-pv.z" -i "zeta" --download
   ```
