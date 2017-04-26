@@ -158,13 +158,13 @@ def normalise_name(name):
   """Normalise a basis set name to yield a valid filename"""
   return "".join([ "I" if c == "/" else c for c in name.lower() ])
 
-def download_basissets(l, fmt):
+def download_basissets(l, fmt, destination="."):
   """Download all basis sets in the list using the supplied format
   (in optimally contracted form).
   """
   print("Downloading " + str(len(l)) + " basis sets in " + fmt + " format:")
   for b in l:
-    path="./" + normalise_name(b["name"]) + "." + emsl.formats[fmt]
+    path=destination+"/" + normalise_name(b["name"]) + "." + emsl.formats[fmt]
 
     if os.path.exists(path):
       print("   Warn: Skipping " + path + " since file already exists")
@@ -275,7 +275,7 @@ def main():
 
   if args.download:
     for fmt in args.download:
-      download_basissets(li, fmt)
+      download_basissets(li, fmt, destination=args.destination)
   else:
     list_basissets(li,highlight_elements=highlight_elements, fmt=list_format)
 
