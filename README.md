@@ -45,3 +45,11 @@ This is only done if the user uses the flag ``--download``, see below.
   ```
 - For more info about the commandline flags ``look4bas`` understands,
   see the output of ``look4bas -h``
+
+## Requirements and Python dependencies
+- Python >= 3.4
+- argparse
+- [Beautiful Soup](https://pypi.python.org/pypi/beautifulsoup4) >= 4.2
+- [PyYAML](https://pypi.python.org/pypi/PyYAML) >= 3.10
+- [requests](https://pypi.python.org/pypi/requests) >= 2.2
+- shutil
