@@ -12,7 +12,7 @@ from io import StringIO
 
 class config:
   emsl_cache = os.path.expanduser("~/.local/share/look4bas/emsl.yaml")
-  cache_maxage = datetime.timedelta(days=3)
+  cache_maxage = datetime.timedelta(days=14)
   default_download_formats=["Gaussian94"]
   list_formats = {
     "default": ["crop", "noelements", "colour"],
