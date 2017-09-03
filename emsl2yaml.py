@@ -6,10 +6,6 @@ import os
 from datetime import datetime
 
 
-"""The dateformat used in the emsl2yaml metadata"""
-datetime_format="%Y-%m-%d %H:%M:%S.%f"
-
-
 def emsl2yaml():
   """ Download emsl basis data and return yaml string of it,
   which is enhanced with metadata about the date and version
@@ -18,7 +14,7 @@ def emsl2yaml():
     "list": emsl.download_basisset_list(),
     "meta": {
       # UTC timestamp
-      "timestamp": datetime.utcnow().strftime(datetime_format),
+      "timestamp": datetime.utcnow().isoformat(),
       # yaml format version:
       "version": "0.0.0",
     }
