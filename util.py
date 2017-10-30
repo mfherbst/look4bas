@@ -26,16 +26,16 @@ class TLSv1_2Adapter(TLSLowerAdapter):
     ssl_version = ssl.PROTOCOL_TLSv1_2
 
 
-def get_tls_fallback(url, **kwargs):
+def method_tls_fallback(url, method, *args, **kwargs):
     """
-    Try to get an url using requests. If the get request fails
-    due to an SSLError, we try to lower the TLS version until
-    it finally succeeds.
+    Try to perform a method on an url using requests.
+    If the get request fails due to an SSLError, we try to lower
+    the TLS version until it finally succeeds.
     """
     # Try to get as-is
     try:
         session = requests.Session()
-        return session.get(url, **kwargs)
+        return getattr(session, method)(url, *args, **kwargs)
     except requests.exceptions.SSLError:
         pass
 
@@ -44,7 +44,15 @@ def get_tls_fallback(url, **kwargs):
         try:
             session = requests.Session()
             session.mount("https://", adapter())
-            return session.get(url, **kwargs)
+            return getattr(session, method)(url, *args, **kwargs)
         except requests.exceptions.SSLError as e:
             err = e
     raise err
+
+
+def get_tls_fallback(url, *args, **kwargs):
+    return method_tls_fallback(url, "get", *args, **kwargs)
+
+
+def post_tls_fallback(url, *args, **kwargs):
+    return method_tls_fallback(url, "post", *args, **kwargs)

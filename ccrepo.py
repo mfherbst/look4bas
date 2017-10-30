@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import requests
+import util
 import re
 from bs4 import BeautifulSoup
 
 """ccrepo base url"""
 base_url = "http://grant-hill.group.shef.ac.uk/ccrepo"
-# TODO https does not work.
+# https does not work
 
 
 class CcrepoError(Exception):
@@ -19,7 +19,7 @@ class CcrepoError(Exception):
 
 
 def get_element_list():
-    ret = requests.get(base_url)
+    ret = util.get_tls_fallback(base_url)
     if not ret.ok:
         raise CcrepoError("Error downloading list of elements from ccrepo")
     soup = BeautifulSoup(ret.text, "lxml")
@@ -71,7 +71,7 @@ def get_basis_set_definition(element, basis, format):
 
     payload = {"basis": basis, "program": format}
     page = base_url + "/" + ele + "/" + sym + "basis.php"
-    ret = requests.post(page, data=payload)
+    ret = util.post_tls_fallback(page, data=payload)
 
     soup = BeautifulSoup(ret.text, "lxml")
     cont = soup.find_all(class_="container")
@@ -93,7 +93,7 @@ def get_basis_set_definition(element, basis, format):
 
 def __get_options(option, element):
     page = base_url + "/" + element["name"] + "/index.html"
-    ret = requests.get(page)
+    ret = util.get_tls_fallback(page)
     if not ret.ok:
         raise CcrepoError("Error downloading list of elements from: " +
                           element["name"] + "/index.html")
