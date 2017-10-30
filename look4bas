@@ -293,7 +293,7 @@ def main():
     # Predicate which is true iff all filters are true
     # for a particular b:
     def matchall(b):
-        return len(filters) == len(True for f in filters if f(b))
+        return len(filters) == len([True for f in filters if f(b)])
     li = [b for b in get_basisset_list(force_update=args.force_update) if matchall(b)]
 
     if not li:

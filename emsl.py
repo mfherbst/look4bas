@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-import requests
-import re
 from bs4 import BeautifulSoup
+import re
+import util
+
 
 """ Dictionary of the basis set formats supported by emsl as well as this script,
     mapped to the default file extension used.
@@ -22,6 +23,7 @@ class EmslError(Exception):
   def __init__(self,message):
     super(EmslError, self).__init__(message)
 
+
 def download_basisset(basisset, format):
   """
   Obtain a basisset from the emsl library in a certain format
@@ -32,24 +34,26 @@ def download_basisset(basisset, format):
   # TODO contraction=False does not seem to work and is hence
   #      not exposed via the interface
 
-  eltlist=" ".join(basisset['elements'])
-  url=base_url+"/action/portlets.BasisSetAction/template/courier_content/panel/Main"
-  url += "/eventSubmit_doDownload/true"
+  url = base_url + "/action/portlets.BasisSetAction/template/courier_content/panel/Main" \
+          "/eventSubmit_doDownload/true"
 
   params = {
     "bsurl": basisset['url'],
     "bsname": basisset['name'],
-    "elts": eltlist,
+    "elts": " ".join(basisset['elements']),
     "format": format,
-    # Or "false" if not optimised general contractions are wanted
-    "minimize": 'true',
+    # Or "false" if not optimised general contractions are desired
+    "minimize": "true",
   }
 
-  ret = requests.get(url, params)
+  ret = util.get_tls_fallback(url, data=params)
   if not ret.ok:
-    raise EmslError("Error getting basis set " + basisset['name'] + " from emsl")
-  soup = BeautifulSoup(ret.text,"lxml")
+    raise EmslError("Error getting basis set " + basisset['name'] + " from emsl.")
+  soup = BeautifulSoup(ret.text, "lxml")
 
+  # The basis set should be encoded inside a pre tag
+  if soup.pre is None:
+    raise EmslError("No pre in result from emsl for basis set name " + basisset['name'])
   return soup.pre.text
 
 def _parse_list(string):
@@ -95,10 +99,11 @@ def download_basisset_list():
   Download and parse the list of basis sets from emsl
   Returns a list of basis set dictionaries
   """
-  ret = requests.get(base_url+"/panel/Main/template/content")
+  ret = util.get_tls_fallback(base_url + "/panel/Main/template/content")
+
   if not ret.ok:
     raise EmslError("Error downloading list of basis sets from emsl")
-  soup = BeautifulSoup(ret.text,"lxml")
+  soup = BeautifulSoup(ret.text, "lxml")
 
   basis_sets=[] # The basis set list to return
 
