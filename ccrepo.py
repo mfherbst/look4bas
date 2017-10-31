@@ -3,6 +3,7 @@
 import util
 import re
 from bs4 import BeautifulSoup
+import warnings
 
 """ccrepo base url"""
 base_url = "http://grant-hill.group.shef.ac.uk/ccrepo"
@@ -79,6 +80,8 @@ def get_basis_set_definition(element, basis, format):
         raise CcrepoError("Found more than one container on the page " + page)
     cont = cont[0]
 
+    # TODO Extract reference as well!
+
     # All content sits in a nobr block
     cont = str(cont.nobr)
     cont = cont.replace("<nobr>", "")
@@ -146,7 +149,7 @@ def merge_gaussian_basis(parts):
     startlines = []
     bodylines = []
     appended_BASIS_line = False
-    for part in parts:
+    for i, part in enumerate(parts):
         # Did we already get the BASIS= line for the element?
         got_BASIS_line = False
         for line in part.split("\n"):
@@ -160,8 +163,8 @@ def merge_gaussian_basis(parts):
             elif len(line) > 0 and line != "!":
                 startlines.append(line)
         if not got_BASIS_line:
-            raise CcrepoError("Did not get any BASIS= line for gaussian basis "
-                              "file part.")
+            raise CcrepoError("Did not get any BASIS= line for the " +
+                              str(i) + "th gaussian basis file part.")
     return "\n".join(startlines) + "\n\n****\n" + "\n".join(bodylines)
 
 
@@ -173,9 +176,19 @@ def download_basisset(basisset, format):
         raise ValueError("The format " + format + " is unsupported.")
 
     basis_set_files = [
-        get_basis_set_definition(elem, basisset["key"], formats[format])
+        (elem["symbol"], get_basis_set_definition(elem, basisset["key"], formats[format]))
         for elem in basisset["elements"]
     ]
+
+    # Remove empty basis set files (This is due to an upstream error)
+    # and warn about them.
+    basis_set_empty = [elem for elem, basis in basis_set_files if len(basis) == 0]
+    if len(basis_set_empty) > 0:
+        warnings.warn("While obtaing the basis set " + basisset["name"] +
+                      " these elements gave rise to empty basis definitions: " +
+                      ", ".join(basis_set_empty) + ". " +
+                      "This typically indicates an error at the ccrepo website.")
+    basis_set_files = [bset for elem, bset in basis_set_files if len(bset) > 0]
 
     if format == "Gaussian":
         return merge_gaussian_basis(basis_set_files)
