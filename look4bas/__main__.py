@@ -1,2 +1,2 @@
-from ._look4bas import main
+from .__init__ import main
 main()
