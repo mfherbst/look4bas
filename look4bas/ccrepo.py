@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import util
+from . import tlsutil
 import re
 from bs4 import BeautifulSoup
 import warnings
@@ -20,7 +20,7 @@ class CcrepoError(Exception):
 
 
 def get_element_list():
-    ret = util.get_tls_fallback(base_url)
+    ret = tlsutil.get_tls_fallback(base_url)
     if not ret.ok:
         raise CcrepoError("Error downloading list of elements from ccrepo")
     soup = BeautifulSoup(ret.text, "lxml")
@@ -72,7 +72,7 @@ def get_basis_set_definition(element, basis, format):
 
     payload = {"basis": basis, "program": format}
     page = base_url + "/" + ele + "/" + sym + "basis.php"
-    ret = util.post_tls_fallback(page, data=payload)
+    ret = tlsutil.post_tls_fallback(page, data=payload)
 
     soup = BeautifulSoup(ret.text, "lxml")
     cont = soup.find_all(class_="container")
@@ -96,7 +96,7 @@ def get_basis_set_definition(element, basis, format):
 
 def __get_options(option, element):
     page = base_url + "/" + element["name"] + "/index.html"
-    ret = util.get_tls_fallback(page)
+    ret = tlsutil.get_tls_fallback(page)
     if not ret.ok:
         raise CcrepoError("Error downloading list of elements from: " +
                           element["name"] + "/index.html")

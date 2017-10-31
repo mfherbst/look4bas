@@ -2,7 +2,7 @@
 
 from bs4 import BeautifulSoup
 import re
-import util
+from . import tlsutil
 
 
 """ Dictionary of the basis set formats supported by emsl as well as this script,
@@ -47,7 +47,7 @@ def download_basisset(basisset, format):
         "minimize": "true",
     }
 
-    ret = util.get_tls_fallback(url, data=params)
+    ret = tlsutil.get_tls_fallback(url, data=params)
     if not ret.ok:
         raise EmslError("Error getting basis set " + basisset['name'] + " from emsl.")
     soup = BeautifulSoup(ret.text, "lxml")
@@ -105,7 +105,7 @@ def download_basisset_list():
     Download and parse the list of basis sets from emsl
     Returns a list of basis set dictionaries
     """
-    ret = util.get_tls_fallback(base_url + "/panel/Main/template/content")
+    ret = tlsutil.get_tls_fallback(base_url + "/panel/Main/template/content")
 
     if not ret.ok:
         raise EmslError("Error downloading list of basis sets from emsl")

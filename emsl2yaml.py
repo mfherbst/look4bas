@@ -1,42 +1,18 @@
 #!/usr/bin/env python3
-import emsl
-import argparse
-import yaml
+import look4bas.cache
 import os
-from datetime import datetime
+import yaml
+import sys
 
 
-def emsl2yaml():
-    """ Download emsl basis data and return yaml string of it,
-    which is enhanced with metadata about the date and version
-    """
-    d = {
-        "list": emsl.download_basisset_list(),
-        "meta": {
-            # UTC timestamp
-            "timestamp": datetime.utcnow().isoformat(),
-            # yaml format version:
-            "version": "0.0.0",
-        }
-    }
-    return yaml.safe_dump(d)
+if len(sys.argv) < 2:
+    raise SystemExit("Need output file as first argument.")
 
+output = sys.argv[1]
+_, ext = os.path.splitext(output)
+if ext not in ['.yml', '.yaml']:
+    output += '.yaml'
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Download and convert the EMSL basis set exchange data to a yaml file"
-    )
-    parser.add_argument("output", type=str, metavar="out.yaml",
-                        help="Location to store the yaml file")
-    args = parser.parse_args()
-
-    _, ext = os.path.splitext(args.output)
-    if ext not in ['.yml', '.yaml']:
-        args.output += '.yaml'
-
-    data = emsl2yaml()
-    open(args.output, "w").write(data)
-
-
-if __name__ == "__main__":
-    main()
+data = look4bas.cache.get_basisset_list("emsl", force_update=True)
+with open(output, "w") as f:
+    yaml.safe_dump(data, f)

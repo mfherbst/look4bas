@@ -1,46 +1,13 @@
 #!/usr/bin/env python3
-import emsl
-import emsl2yaml
-import yaml
+
+# This script is an old relict from back in the days when look4bas
+# was only a single script file. It should be split up sensibly.
+
 import os
-import datetime
-import dateutil.parser
 import re
 import argparse
 import shutil
-from io import StringIO
-
-
-class config:
-    emsl_cache = os.path.expanduser("~/.local/share/look4bas/emsl.yaml")
-    cache_maxage = datetime.timedelta(days=14)
-    default_download_formats = ["Gaussian94"]
-    list_formats = {
-        "default": ["crop", "noelements", "colour"],
-        "extra":   ["crop", "elements", "colour"]
-    }
-
-
-def get_basisset_list(force_update=False):
-    """Check whether the cached emsl list file is recent enough
-    and update it if not"""
-    if os.path.exists(config.emsl_cache) and not force_update:
-        with open(config.emsl_cache, "r") as f:
-            data = yaml.safe_load(f)
-            timestamp = dateutil.parser.parse(data["meta"]["timestamp"])
-
-            # Only use the cache if the age of the cached data is
-            # less than the value the config wants:
-            age = datetime.datetime.utcnow() - timestamp
-            if age < config.cache_maxage:
-                return data["list"]
-
-            # TODO Still use old list if we have a network error.
-
-    os.makedirs(os.path.dirname(config.emsl_cache), exist_ok=True)
-    cache = emsl2yaml.emsl2yaml()
-    open(config.emsl_cache, "w").write(cache)
-    return yaml.safe_load(StringIO(cache))["list"]
+from . import config, emsl, cache
 
 
 __strip_ANSI_escapes = re.compile(r"""
@@ -299,7 +266,8 @@ def main():
     # for a particular b:
     def matchall(b):
         return len(filters) == len([True for f in filters if f(b)])
-    li = [b for b in get_basisset_list(force_update=args.force_update) if matchall(b)]
+    li = [b for b in cache.get_basisset_list(force_update=args.force_update)
+          if matchall(b)]
 
     if not li:
         raise SystemExit("No basis set matched your search")
@@ -309,7 +277,3 @@ def main():
             download_basissets(li, fmt, destination=args.destination)
     else:
         list_basissets(li, highlight_elements=highlight_elements, fmt=list_format)
-
-
-if __name__ == "__main__":
-    main()
