@@ -224,7 +224,7 @@ def main():
                          "name matches this, the basis set is considered a match.")
     filters.add_argument("--elements", metavar="element", nargs='+',
                          help="List of elements the basis set should contain. "
-                         "Implies '--print-elements'.")
+                         "Implies '--format elements'.")
     filters.add_argument("--regexp", "-e", dest="name_regexp", metavar="regexp",
                          help="A regular expression to match *only* against the basis "
                          "set name.")
@@ -259,13 +259,12 @@ def main():
     highlight_elements = []
     filters = []
 
-    # Parse args:
+    # Default format:
     list_format = config.list_formats["default"]
     if args.extra:
         list_format = config.list_formats["extra"]
-    if args.format is not None:
-        list_format.extend(args.format)
 
+    # Parse args:
     if args.ignorecase:
         def case_transform(s):
             return s.lower()
@@ -275,9 +274,11 @@ def main():
 
     # Build filters
     if args.elements:
-        args.elements = set(args.elements)
+        args.elements = set(e for spec in args.elements for e in spec.split(",")
+                            if len(e) > 0)
         highlight_elements = args.elements
         filters.append(lambda b: args.elements.issubset(set(b["elements"])))
+        list_format.append("elements")
     if args.pattern:
         # Matches if name *or* description is matched
         reg_pattern = re.compile(case_transform(args.pattern))
@@ -289,6 +290,10 @@ def main():
     if args.description_regexp:
         reg_descr = re.compile(case_transform(args.description_regexp))
         filters.append(lambda b: reg_descr.search(case_transform(b["description"])))
+
+    # Extend format is user wants it:
+    if args.format is not None:
+        list_format.extend(args.format)
 
     # Predicate which is true iff all filters are true
     # for a particular b:
