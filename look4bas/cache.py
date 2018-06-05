@@ -2,7 +2,6 @@
 
 from . import config, emsl, ccrepo
 import datetime
-import dateutil.parser
 import os
 import yaml
 
@@ -20,7 +19,8 @@ def get_basisset_list(source="emsl", force_update=False):
     if os.path.exists(cache) and not force_update:
         with open(cache, "r") as f:
             data = yaml.safe_load(f)
-            timestamp = dateutil.parser.parse(data["meta"]["timestamp"])
+            isoformat = "%Y-%m-%dT%H:%M:%S.%f"
+            timestamp = datetime.datetime.strptime(data["meta"]["timestamp"], isoformat)
 
             # Only use the cache if the age of the cached data is
             # less than the value the config wants:
