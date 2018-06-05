@@ -12,9 +12,6 @@ formats = {
     "Gaussian94": "g94",
 }
 
-""" Emsl BSE base url """
-base_url = "https://bse.pnl.gov:443/bse/portal/user/anon/js_peid/11535052407933"
-
 
 class EmslError(Exception):
     """
@@ -23,6 +20,39 @@ class EmslError(Exception):
     """
     def __init__(self, message):
         super(EmslError, self).__init__(message)
+
+
+"""Cache for the base url"""
+__base_url_cache = None
+
+
+def get_base_url():
+    """
+    Unfortunately the emsl base url changes from time to time.
+    This function determines it.
+    """
+    global __base_url_cache
+    if __base_url_cache is not None:
+        return __base_url_cache
+
+    portal_url = "https://bse.pnl.gov/bse/portal"
+    ret = tlsutil.get_tls_fallback(portal_url)
+
+    if not ret.ok:
+        raise EmslError("Error determining base url from {}.".format(portal_url))
+    soup = BeautifulSoup(ret.text, "lxml")
+
+    iframe = soup.find("iframe", class_="chefContentIFrame")
+    if iframe is None:
+        raise EmslError("Could not find content iframe in {}.".format(portal_url))
+
+    title_url = iframe["src"]
+    if not title_url.endswith("/panel/Main/template/content"):
+        raise EmslError("Unexpected title iframe url")
+
+    __base_url_cache = title_url[:-28]
+    print(__base_url_cache)
+    return __base_url_cache
 
 
 def download_basisset(basisset, format):
@@ -35,6 +65,7 @@ def download_basisset(basisset, format):
     # TODO contraction=False does not seem to work and is hence
     #      not exposed via the interface
 
+    base_url = get_base_url()
     url = base_url + "/action/portlets.BasisSetAction/template/courier_content/panel/" \
         "Main/eventSubmit_doDownload/true"
 
@@ -105,6 +136,7 @@ def download_basisset_list():
     Download and parse the list of basis sets from emsl
     Returns a list of basis set dictionaries
     """
+    base_url = get_base_url()
     ret = tlsutil.get_tls_fallback(base_url + "/panel/Main/template/content")
 
     if not ret.ok:
