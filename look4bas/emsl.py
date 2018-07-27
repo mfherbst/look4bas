@@ -71,13 +71,13 @@ def download_basisset(basisset, format):
     params = {
         "bsurl": basisset['url'],
         "bsname": basisset['name'],
-        "elts": " ".join(basisset['elements']),
+        "elts": " ".join(basisset['elements']) + " ",
         "format": format,
         # Or "false" if not optimised general contractions are desired
         "minimize": "true",
     }
 
-    ret = tlsutil.get_tls_fallback(url, data=params)
+    ret = tlsutil.get_tls_fallback(url, params=params)
     if not ret.ok:
         raise EmslError("Error getting basis set " + basisset['name'] + " from emsl.")
     soup = BeautifulSoup(ret.text, "lxml")
