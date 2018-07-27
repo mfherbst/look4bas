@@ -33,7 +33,7 @@ setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
-        'License :: OSI Approved :: GNU General Public License v3',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Intended Audience :: Science/Research',
         "Topic :: Scientific/Engineering :: Chemistry",
         'Programming Language :: Python :: 3.5',
