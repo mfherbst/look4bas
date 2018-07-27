@@ -51,7 +51,6 @@ def get_base_url():
         raise EmslError("Unexpected title iframe url")
 
     __base_url_cache = title_url[:-28]
-    print(__base_url_cache)
     return __base_url_cache
 
 
