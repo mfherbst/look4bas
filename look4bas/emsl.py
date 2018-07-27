@@ -2,7 +2,8 @@
 
 from bs4 import BeautifulSoup
 import re
-from . import tlsutil
+from . import tlsutil, gaussian94, element
+import json
 
 
 """ Dictionary of the basis set formats supported by emsl as well as this script,
@@ -54,7 +55,7 @@ def get_base_url():
     return __base_url_cache
 
 
-def download_basisset(basisset, format):
+def download_basisset_raw(basisset, format):
     """
     Obtain a basisset from the emsl library in a certain format
     for all the elements which are available
@@ -85,6 +86,9 @@ def download_basisset(basisset, format):
     # The basis set should be encoded inside a pre tag
     if soup.pre is None:
         raise EmslError("No pre in result from emsl for basis set name " +
+                        basisset['name'])
+    if "$bsdata" in soup.pre.text:
+        raise EmslError("Only found dummy content in pre element for basis set name " +
                         basisset['name'])
     return soup.pre.text
 
@@ -181,3 +185,68 @@ def download_basisset_list():
         raise EmslError("No basis sets obtained from emsl bse data")
 
     return basis_sets
+
+
+def add_to_database(db):
+    """
+    Add the basis set definitions to the database
+    """
+    lst = download_basisset_list()
+
+    for bas in lst:
+        basset_id = db.insert_basset(bas["name"], bas["description"])
+
+        extra = json.dumps({"url": bas["url"]})
+        for atom in bas["elements"]:
+            try:
+                atnum = element.by_symbol(atom).atom_number
+            except KeyError as e:
+                print("Skipping atom {}: ".format(atom) + str(e))
+                continue
+            db.insert_basset_atom(basset_id, atnum, "EMSL",
+                                  extra=extra, reference="")
+
+
+def download_basis_for_atom(name, atnum, extra):
+    """
+    Obtain the contracted Gaussian functions for the basis with the
+    given name, the atom with the given atomic number as well
+    as the indicated extra information.
+
+    Returns a list of dicts with the following information:
+        angular_momentum  Angular momentum of the function
+        coefficients      List of contraction coefficients
+        exponents         List of contraction exponents
+    """
+    basis_url = json.loads(extra)["url"]
+    symbol = element.by_atomic_number(atnum).symbol
+
+    base_url = get_base_url()
+    url = base_url + "/action/portlets.BasisSetAction/template/courier_content/panel/" \
+        "Main/eventSubmit_doDownload/true"
+
+    params = {
+        "bsurl": basis_url,
+        "bsname": name,
+        "elts":  symbol + " ",
+        "format": "Gaussian94",
+        "minimize": "true",      # Get contracted version, decontraction can happen later
+    }
+
+    ret = tlsutil.get_tls_fallback(url, params=params)
+    if not ret.ok:
+        raise EmslError("Error getting basis set " + name + " from emsl.")
+    soup = BeautifulSoup(ret.text, "lxml")
+
+    # The basis set should be encoded inside a pre tag
+    if soup.pre is None:
+        raise EmslError("No pre in result from emsl for basis set name " +
+                        name)
+    if "$bsdata" in soup.pre.text:
+        raise EmslError("Only found dummy content in pre element for basis set name " +
+                        name)
+    ret = gaussian94.parse_g94(soup.pre.text)
+    return ret["functions"]
+
+# TODO Idea is to download per atom and basis in high level form,
+#      then merge and dump as g94 file

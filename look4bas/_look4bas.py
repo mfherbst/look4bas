@@ -153,7 +153,7 @@ def download_basissets(l, fmt, destination="."):
             continue
 
         print("   ", b["name"], " to ", path)
-        data = emsl.download_basisset(b, fmt)
+        data = emsl.download_basisset_raw(b, fmt)
         open(path, "w").write(data)
 
 

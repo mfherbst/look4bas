@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-from . import tlsutil
+from . import tlsutil, element, gaussian94
 import re
+import json
 from bs4 import BeautifulSoup
 import warnings
 
@@ -168,7 +169,7 @@ def merge_gaussian_basis(parts):
     return "\n".join(startlines) + "\n\n****\n" + "\n".join(bodylines)
 
 
-def download_basisset(basisset, format):
+def download_basisset_raw(basisset, format):
     # TODO We assume the same formats are available for all elements
     element = basisset["elements"][0]
     formats = get_formats_for_elem(element)
@@ -197,11 +198,46 @@ def download_basisset(basisset, format):
                                   "currently implemented.")
 
 
+def add_to_database(db):
+    """
+    Add the basis set definitions to the database
+    """
+    lst = download_basisset_list()
+
+    for bas in lst:
+        basset_id = db.insert_basset(bas["name"], description="")
+
+        extra = json.dumps({"key": bas["key"]})
+        for elem in bas["elements"]:
+            atnum = element.by_symbol(elem["symbol"]).atom_number
+            db.insert_basset_atom(basset_id, atnum, "ccrepo",
+                                  extra=extra, reference="")
+
+
+def download_basis_for_atom(name, atnum, extra):
+    """
+    Obtain the contracted Gaussian functions for the basis with the
+    given name, the atom with the given atomic number as well
+    as the indicated extra information.
+
+    Returns a list of dicts with the following information:
+        angular_momentum  Angular momentum of the function
+        coefficients      List of contraction coefficients
+        exponents         List of contraction exponents
+    """
+    elem = element.by_atomic_number(atnum)
+    formats = get_formats_for_elem(element)  # Note: This is an https request!
+    key = json.loads(extra)["key"]
+    basdef = get_basis_set_definition(elem, key, formats["Gaussian"])
+    ret = gaussian94.parse_g94(basdef)
+    return ret["functions"]
+
+
 def main(format="Gaussian"):
     ss = 22
     data = download_basisset_list()
     print("Selecting set: ", data[ss]["name"])
-    print(download_basisset(data[ss], format))
+    print(download_basisset_raw(data[ss], format))
 
 
 if __name__ == "__main__":
