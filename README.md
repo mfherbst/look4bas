@@ -1,4 +1,5 @@
 # look4bas
+[![PyPI version](https://img.shields.io/pypi/v/look4bas.svg)](https://pypi.org/project/look4bas)
 
 ``look4bas`` is a Python script to search and obtain Gaussian basis sets.
 Currently we only use the data of the
