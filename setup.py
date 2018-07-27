@@ -24,7 +24,12 @@ setup(
     version='0.0.0',
     #
     python_requires='>=3',
-    install_requires=['PyYAML (>=3.10)', 'requests (>=2.2)', 'beautifulsoup4 (>= 4.2)'],
+    install_requires=[
+        'PyYAML (>=3.10)',
+        'requests (>=2.2)',
+        'beautifulsoup4 (>= 4.2)',
+        'lxml (>= 4.2)'
+    ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
