@@ -136,7 +136,7 @@ def loads(string):
     """
 
     # First split into blocks at the separating "****)
-    blocks = string.split("****\n")
+    blocks = [b.strip() for b in string.split("****")]
 
     if len(blocks) < 2:
         raise ValueError("At least one '****' sequence in the input string is expected")

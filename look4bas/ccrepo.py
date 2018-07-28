@@ -75,9 +75,17 @@ def get_basis_set_definition(element, basis, format):
     page = base_url + "/" + ele + "/" + sym + "basis.php"
     ret = tlsutil.post_tls_fallback(page, data=payload)
 
+    if not ret.ok:
+        raise CcrepoError("Error downloading page " + page)
+
+    if len(ret.text) == 0:
+        raise CcrepoError("Got unexpected empty page on " + page)
+
     soup = BeautifulSoup(ret.text, "lxml")
     cont = soup.find_all(class_="container")
-    if len(cont) != 1:
+    if len(cont) == 0:
+        raise CcrepoError("Found no container on page " + page)
+    if len(cont) > 1:
         raise CcrepoError("Found more than one container on the page " + page)
     cont = cont[0]
 
@@ -236,14 +244,17 @@ def download_cgto_for_atoms(bset_name, atnums, extra):
     key = json.loads(extra)["key"]
 
     elem0 = element.by_atomic_number(atnums[0])
-    formats = get_formats_for_elem(elem0)  # Note: This is an https request!
+    formats = get_formats_for_elem(elem0._asdict())  # Note: This is an https request!
 
     ret = []
     for atnum in atnums:
-        elem = element.by_atomic_number(atnums)
-        basdef = get_basis_set_definition(elem, key, formats["Gaussian"])
-        basparsed = gaussian94.loads(basdef)
+        elem = element.by_atomic_number(atnum)
+        basdef = get_basis_set_definition(elem._asdict(), key, formats["Gaussian"])
 
+        # Replace the BASIS= line by ****
+        basdef = re.sub("\nBASIS=[^\n]+\n", "\n****\n", basdef)
+
+        basparsed = gaussian94.loads(basdef)
         assert len(basparsed) == 1
         ret.append(basparsed[0])
     return ret
