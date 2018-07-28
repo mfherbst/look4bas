@@ -19,8 +19,7 @@ setup(
     license="GPL 3",
     #
     packages=['look4bas'],
-    scripts=["bin/look4bas", "bin/ccrepo2yaml.py",
-             "bin/ccrepo_download_g94.py", "bin/emsl2yaml.py"],
+    scripts=["bin/look4bas"],
     version='0.0.0',
     #
     python_requires='>=3',
