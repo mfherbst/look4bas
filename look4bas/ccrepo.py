@@ -217,34 +217,36 @@ def add_to_database(db):
 
 
 def download_cgto_for_atoms(bset_name, atnums, extra):
-    raise NotImplementedError("Not yet implemented. "
-                              "Use the below function for this.")
-
-
-def download_cgto_for_atom(bset_name, atnum, extra):
     """
     Obtain the contracted Gaussian functions for the basis with the
     given name, the atom with the given atomic number as well
     as the indicated extra information.
 
     @param bset_name   Name of the basis set
-    @param atnum  Atomic number
+    @param atnum  List of atomic numbers
     @param extra  Extra info required
 
-    Returns a list of dicts with the following information:
-        angular_momentum  Angular momentum of the function
-        coefficients      List of contraction coefficients
-        exponents         List of contraction exponents
+    Returns a list of dicts containing the following entries:
+        atnum:     atomic number
+        functions: list of dict with the keys:
+            angular_momentum  Angular momentum of the function
+            coefficients      List of contraction coefficients
+            exponents         List of contraction exponents
     """
-    # TODO Do not use element.by, use a custom translation table,
-    #      which is cached from the ccrepo website
-    elem = element.by_atomic_number(atnum)
-    formats = get_formats_for_elem(element)  # Note: This is an https request!
     key = json.loads(extra)["key"]
-    basdef = get_basis_set_definition(elem, key, formats["Gaussian"])
-    ret = gaussian94.loads(basdef)
-    assert len(ret) == 1
-    return ret[0]["functions"]
+
+    elem0 = element.by_atomic_number(atnums[0])
+    formats = get_formats_for_elem(elem0)  # Note: This is an https request!
+
+    ret = []
+    for atnum in atnums:
+        elem = element.by_atomic_number(atnums)
+        basdef = get_basis_set_definition(elem, key, formats["Gaussian"])
+        basparsed = gaussian94.loads(basdef)
+
+        assert len(basparsed) == 1
+        ret.append(basparsed[0])
+    return ret
 
 
 def main(format="Gaussian"):

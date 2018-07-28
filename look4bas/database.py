@@ -55,7 +55,7 @@ class Database:
         if os.path.exists(self.dbfile):
             return datetime.datetime.fromtimestamp(os.path.getmtime(self.dbfile))
         else:
-            return datetime.datetime.utcnow()
+            return datetime.datetime.fromtimestamp(0)
 
     def clear(self):
         """Clear the complete database and reset to untouched state"""
@@ -111,6 +111,13 @@ class Database:
 
             # Set value to db version to indicate initialisation
             cur.execute("PRAGMA user_version = {v:d}".format(v=self.database_version))
+
+    @property
+    def empty(self):
+        with self.conn:
+            cur = self.conn.cursor()
+            count = cur.execute("SELECT COUNT(*) FROM BasisSet").fetchone()[0]
+        return count == 0
 
     def close(self):
         """

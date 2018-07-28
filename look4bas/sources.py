@@ -13,12 +13,13 @@ def cache_database(maxage=datetime.timedelta(days=14)):
     db = database.Database()
 
     age = datetime.datetime.utcnow() - db.timestamp
-    if maxage is not None and maxage != 0 and age < maxage:
+    if maxage is not None and maxage != 0 and age < maxage and not db.empty:
         return db
     else:
         db.clear()
         emsl.add_to_database(db)
         # ccrepo.add_to_database(db)
+        return db
 
 
 def amend_cgto_definitions(db, basisset):
