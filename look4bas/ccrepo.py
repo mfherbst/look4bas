@@ -205,22 +205,26 @@ def add_to_database(db):
     lst = download_basisset_list()
 
     for bas in lst:
-        basset_id = db.insert_basisset(bas["name"], description="")
-
         extra = json.dumps({"key": bas["key"]})
+        basset_id = db.insert_basisset(bas["name"], description="",
+                                       source="ccrepo", extra=extra)
+
         for elem in bas["elements"]:
             # TODO Do not use element.by, use a custom translation table,
             #      which is cached from the ccrepo website
             atnum = element.by_symbol(elem["symbol"]).atom_number
-            db.insert_basisset_atom(basset_id, atnum, "ccrepo",
-                                    extra=extra, reference="")
+            db.insert_basisset_atom(basset_id, atnum, reference="")
 
 
-def download_basis_for_atom(name, atnum, extra):
+def download_cgto_for_atom(bset_name, atnum, extra):
     """
     Obtain the contracted Gaussian functions for the basis with the
     given name, the atom with the given atomic number as well
     as the indicated extra information.
+
+    @param bset_name   Name of the basis set
+    @param atnum  Atomic number
+    @param extra  Extra info required
 
     Returns a list of dicts with the following information:
         angular_momentum  Angular momentum of the function

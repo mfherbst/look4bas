@@ -1,36 +1,24 @@
 #!/usr/bin/env python3
 
-from look4bas import emsl, ccrepo, database
-
-
-def download_basis_for_atom(name, atnum, source, extra):
-    funmap = {
-        "EMSL": emsl.download_basis_for_atom,
-        "ccrepo": ccrepo.download_basis_for_atom,
-    }
-    return funmap[source](name, atnum, extra)
+from look4bas import sources, config
 
 
 def main():
-    db = database.Database()
+    # Update database (use internet if too old)
+    db = sources.cache_database(config.cache_maxage)
 
-    # Todo Find out about age of database by looking at the modification
-    # time of the database file and if it's too old update
+    # Search for ccpvdz
+    findings = db.search_basisset(name="cc-pVDZ$", regex=True, has_atnums=[2, 6])
 
-    # Update database (if its too old)
-    db.clear()
-    emsl.add_to_database(db)
-    # ccrepo.add_to_database(db)
+    if len(findings) == 0:
+        raise SystemExit("ccpvdz not found")
 
-    # Look at _look4bas.py and invent sensible querying mechanisms
-    # in database.py such that the frontend can stay as it is, but
-    # the backend is now the database
+    # Found ... now obtain all details
+    ccpvdz = db.obtain_basisset(findings[0]["id"])
+    # and the contractions
+    sources.amend_cgto_definitions(ccpvdz)
 
-    atnum = 2
-    name = "pc-0"
-    extra = '{"url": "/files/projects/Basis_Set_Curators/Gaussian/contrib/frj_new/PC-0.xml"}'
-    res = download_basis_for_atom(name, atnum, "EMSL", extra)
-    print(res)
+    print(ccpvdz)
 
 
 if __name__ == "__main__":

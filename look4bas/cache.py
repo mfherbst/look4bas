@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# Obsolete if sources and database are implemented
+
 from . import config, emsl, ccrepo
 import datetime
 import os

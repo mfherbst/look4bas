@@ -194,9 +194,10 @@ def add_to_database(db):
     lst = download_basisset_list()
 
     for bas in lst:
-        basset_id = db.insert_basisset(bas["name"], bas["description"])
-
         extra = json.dumps({"url": bas["url"]})
+        basset_id = db.insert_basisset(bas["name"], source="EMSL", extra=extra,
+                                       description=bas["description"])
+
         for atom in bas["elements"]:
             try:
                 # TODO Do not use element.by, use a custom translation table,
@@ -205,15 +206,18 @@ def add_to_database(db):
             except KeyError as e:
                 print("Skipping atom {}: ".format(atom) + str(e))
                 continue
-            db.insert_basisset_atom(basset_id, atnum, "EMSL",
-                                    extra=extra, reference="")
+            db.insert_basisset_atom(basset_id, atnum, reference="")
 
 
-def download_basis_for_atom(name, atnum, extra):
+def download_cgto_for_atom(bset_name, atnum, extra):
     """
     Obtain the contracted Gaussian functions for the basis with the
     given name, the atom with the given atomic number as well
     as the indicated extra information.
+
+    @param bset_name   Name of the basis set
+    @param atnum  Atomic number
+    @param extra  Extra info required
 
     Returns a list of dicts with the following information:
         angular_momentum  Angular momentum of the function
@@ -221,6 +225,7 @@ def download_basis_for_atom(name, atnum, extra):
         exponents         List of contraction exponents
     """
     basis_url = json.loads(extra)["url"]
+
     # TODO Do not use element.by, use a custom translation table,
     #      which is cached from the emsl website
     symbol = element.by_atomic_number(atnum).symbol
@@ -231,7 +236,7 @@ def download_basis_for_atom(name, atnum, extra):
 
     params = {
         "bsurl": basis_url,
-        "bsname": name,
+        "bsname": bset_name,
         "elts":  symbol + " ",
         "format": "Gaussian94",
         "minimize": "true",      # Get contracted version, decontraction can happen later
@@ -239,20 +244,25 @@ def download_basis_for_atom(name, atnum, extra):
 
     ret = tlsutil.get_tls_fallback(url, params=params)
     if not ret.ok:
-        raise EmslError("Error getting basis set " + name + " from emsl.")
+        raise EmslError("Error getting basis set " + bset_name + " from emsl.")
     soup = BeautifulSoup(ret.text, "lxml")
 
     # The basis set should be encoded inside a pre tag
     if soup.pre is None:
         raise EmslError("No pre in result from emsl for basis set name " +
-                        name)
+                        bset_name)
     if "$bsdata" in soup.pre.text:
         raise EmslError("Only found dummy content in pre element for basis set name " +
-                        name)
+                        bset_name)
 
     ret = gaussian94.parse_g94(soup.pre.text)
-    assert len(ret) == 1
+    if len(ret) != 1:
+        raise AssertionError("Something went wrong parsing EMSL basis set text "
+                             "\n{}".format(soup.pre.text))
+
     return ret[0]["functions"]
 
-# TODO Idea is to download per atom and basis in high level form,
-#      then merge and dump as g94 file
+
+def download_cgto_for_basisset(bset_name, extra):
+    pass # TODO Improved version where the complete basis set is downloaded at once
+    # left for the caller to filter what he / she needs

@@ -146,3 +146,7 @@ def parse_g94(string):
     # The first and last block are just comments or trailing newlines and can
     # be ignored
     return [__parse_element_block(block) for block in blocks[1:-1]]
+
+
+def write_g94(data):
+    pass
