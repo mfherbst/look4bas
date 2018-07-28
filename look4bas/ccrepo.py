@@ -205,13 +205,15 @@ def add_to_database(db):
     lst = download_basisset_list()
 
     for bas in lst:
-        basset_id = db.insert_basset(bas["name"], description="")
+        basset_id = db.insert_basisset(bas["name"], description="")
 
         extra = json.dumps({"key": bas["key"]})
         for elem in bas["elements"]:
+            # TODO Do not use element.by, use a custom translation table,
+            #      which is cached from the ccrepo website
             atnum = element.by_symbol(elem["symbol"]).atom_number
-            db.insert_basset_atom(basset_id, atnum, "ccrepo",
-                                  extra=extra, reference="")
+            db.insert_basisset_atom(basset_id, atnum, "ccrepo",
+                                    extra=extra, reference="")
 
 
 def download_basis_for_atom(name, atnum, extra):
@@ -225,12 +227,15 @@ def download_basis_for_atom(name, atnum, extra):
         coefficients      List of contraction coefficients
         exponents         List of contraction exponents
     """
+    # TODO Do not use element.by, use a custom translation table,
+    #      which is cached from the ccrepo website
     elem = element.by_atomic_number(atnum)
     formats = get_formats_for_elem(element)  # Note: This is an https request!
     key = json.loads(extra)["key"]
     basdef = get_basis_set_definition(elem, key, formats["Gaussian"])
     ret = gaussian94.parse_g94(basdef)
-    return ret["functions"]
+    assert len(ret) == 1
+    return ret[0]["functions"]
 
 
 def main(format="Gaussian"):

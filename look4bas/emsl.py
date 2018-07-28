@@ -194,17 +194,19 @@ def add_to_database(db):
     lst = download_basisset_list()
 
     for bas in lst:
-        basset_id = db.insert_basset(bas["name"], bas["description"])
+        basset_id = db.insert_basisset(bas["name"], bas["description"])
 
         extra = json.dumps({"url": bas["url"]})
         for atom in bas["elements"]:
             try:
+                # TODO Do not use element.by, use a custom translation table,
+                #      which is cached from the emsl website
                 atnum = element.by_symbol(atom).atom_number
             except KeyError as e:
                 print("Skipping atom {}: ".format(atom) + str(e))
                 continue
-            db.insert_basset_atom(basset_id, atnum, "EMSL",
-                                  extra=extra, reference="")
+            db.insert_basisset_atom(basset_id, atnum, "EMSL",
+                                    extra=extra, reference="")
 
 
 def download_basis_for_atom(name, atnum, extra):
@@ -219,6 +221,8 @@ def download_basis_for_atom(name, atnum, extra):
         exponents         List of contraction exponents
     """
     basis_url = json.loads(extra)["url"]
+    # TODO Do not use element.by, use a custom translation table,
+    #      which is cached from the emsl website
     symbol = element.by_atomic_number(atnum).symbol
 
     base_url = get_base_url()
@@ -245,8 +249,10 @@ def download_basis_for_atom(name, atnum, extra):
     if "$bsdata" in soup.pre.text:
         raise EmslError("Only found dummy content in pre element for basis set name " +
                         name)
+
     ret = gaussian94.parse_g94(soup.pre.text)
-    return ret["functions"]
+    assert len(ret) == 1
+    return ret[0]["functions"]
 
 # TODO Idea is to download per atom and basis in high level form,
 #      then merge and dump as g94 file

@@ -8,7 +8,7 @@ def download_basis_for_atom(name, atnum, source, extra):
         "EMSL": emsl.download_basis_for_atom,
         "ccrepo": ccrepo.download_basis_for_atom,
     }
-    funmap[source](name, atnum, extra)
+    return funmap[source](name, atnum, extra)
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
 
     atnum = 2
     name = "pc-0"
-    extra = "{'url': '/files/projects/Basis_Set_Curators/Gaussian/contrib/frj_new/PC-0.xml'}"
+    extra = '{"url": "/files/projects/Basis_Set_Curators/Gaussian/contrib/frj_new/PC-0.xml"}'
     res = download_basis_for_atom(name, atnum, "EMSL", extra)
     print(res)
 

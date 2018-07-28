@@ -13,6 +13,21 @@ def __strip_comments(string):
     return "\n".join(e.strip() for e in string.split("\n") if e and e[0] != '!')
 
 
+def __parse_contractions(lines, *outputs):
+    for line in lines:
+        exp_coeffs = line.split()
+        if len(exp_coeffs) != len(outputs):
+            raise ValueError("Not enough columns found. Expected {} columns, "
+                             "but found only {}. Culprit line is "
+                             "'{}'".format(len(outputs), len(exp_coeffs), line))
+        try:
+            for i in range(len(outputs)):
+                outputs[i].append(__float_fortran(exp_coeffs[i]))
+        except ValueError:
+            raise ValueError("Could not convert columns to float. "
+                             "Culprit line is '{}'".format(line))
+
+
 def __parse_element_block(block):
     ret = {"functions": []}
     lines = [__strip_comments(l) for l in block.split("\n")]
@@ -20,6 +35,8 @@ def __parse_element_block(block):
 
     symbol, _ = lines[0].split(maxsplit=1)
     try:
+        # TODO Do not use element.by Better use a custom translation table
+        #      which is passed by the appropriate source on call of this function
         ret["atnum"] = element.by_symbol(symbol).atom_number
     except KeyError:
         raise ValueError("Element block starting with invalid element symbol "
@@ -46,22 +63,8 @@ def __parse_element_block(block):
             s_coefficients = []
             p_coefficients = []
             exponents = []
-            for i in range(n_contr):
-                line = lines[idx + i + 1]
-                exp_coeffs = line.split()
-
-                if len(exp_coeffs) != 3:
-                    raise ValueError("Expect exactly three columns in sp "
-                                     "contraction block. "
-                                     "Culprit line is '{}'".format(line))
-
-                try:
-                    exponents.append(__float_fortran(exp_coeffs[0]))
-                    s_coefficients.append(__float_fortran(exp_coeffs[1]))
-                    p_coefficients.append(__float_fortran(exp_coeffs[2]))
-                except ValueError:
-                    raise ValueError("Could not convert to float: {}. "
-                                     "Culprit line is '{}'".format(exp_coeffs, line))
+            __parse_contractions(lines[idx + 1:idx + n_contr + 1],
+                                 exponents, s_coefficients, p_coefficients)
 
             ret["functions"].append({
                 "angular_momentum": 0,
@@ -74,37 +77,24 @@ def __parse_element_block(block):
                 "exponents": exponents,
             })
             idx += n_contr + 1
-            continue
-
-        # Standard cases:
-        try:
-            am = number_to_am.index(amstr)
-        except ValueError:
-            raise ValueError("Invalid angular momentum string {}".format(amstr))
-
-        coefficients = []
-        exponents = []
-        for i in range(n_contr):
-            line = lines[idx + i + 1]
-            exp_coeff = line.split()
-
-            if len(exp_coeff) != 2:
-                raise ValueError("Expect exactly two columns in contraction block. "
-                                 "Culprit line is '{}'".format(line))
-
+        else:
+            # Standard cases:
             try:
-                exponents.append(__float_fortran(exp_coeff[0]))
-                coefficients.append(__float_fortran(exp_coeff[1]))
+                am = number_to_am.index(amstr)
             except ValueError:
-                raise ValueError("Could not convert to float: {}. "
-                                 "Culprit line is '{}'".format(exp_coeff, line))
+                raise ValueError("Invalid angular momentum string {}".format(amstr))
 
-        ret["functions"].append({
-            "angular_momentum": am,
-            "coefficients": coefficients,
-            "exponents": exponents,
-        })
-        idx += n_contr + 1
+            coefficients = []
+            exponents = []
+            __parse_contractions(lines[idx + 1:idx + n_contr + 1], exponents,
+                                 coefficients)
+
+            ret["functions"].append({
+                "angular_momentum": am,
+                "coefficients": coefficients,
+                "exponents": exponents,
+            })
+            idx += n_contr + 1
     return ret
 
 

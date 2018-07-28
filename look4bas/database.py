@@ -2,6 +2,7 @@
 
 import sqlite3 as sqlite
 import os
+import re
 from . import config
 
 
@@ -166,7 +167,7 @@ class Database:
                     ret[fun_id]["exponents"].append(exp)
         return list(ret.values())
 
-    def insert_basset_atom(self, basset_id, atnum, source, extra="", reference=""):
+    def insert_basisset_atom(self, basset_id, atnum, source, extra="", reference=""):
         """
         Insert a new atom for a particular basis set.
 
@@ -197,7 +198,7 @@ class Database:
             rowid = cur.execute("SELECT last_insert_rowid()").fetchone()[0]
         return rowid
 
-    def insert_basset(self, name, description=""):
+    def insert_basisset(self, name, description=""):
         if not isinstance(name, str):
             raise TypeError("name needs to be a string")
         if not isinstance(description, str):
@@ -211,3 +212,25 @@ class Database:
             )
             rowid = cur.execute("SELECT last_insert_rowid()").fetchone()[0]
         return rowid
+
+    def select_basisset(self, name=None, description=None, ignore_case=False,
+                        has_atoms=[], source=None):
+        """
+        Function to filter basis sets. If no arguments are provided,
+        all registered basis sets will be returned.
+
+        name    String to be contained in the basis set same
+                or regular expression to be matched against the name.
+        description   String to be contained in the description
+                      or regular expression to be matched against it.
+        has_atoms    Atoms to be contained in this basis set
+                     Should be a list of atomic numbers.
+        source       The source of the basis set. Is matched exactly.
+        ignore_case  Regular expression and string matchings
+                     in name and description are done ignoring case.
+
+        Returns a list of matching basis sets.
+
+        TODO Define returned data format
+        """
+        return []  # TODO
