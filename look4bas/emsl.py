@@ -209,26 +209,29 @@ def add_to_database(db):
             db.insert_basisset_atom(basset_id, atnum, reference="")
 
 
-def download_cgto_for_atom(bset_name, atnum, extra):
+def download_cgto_for_atoms(bset_name, atnums, extra):
     """
     Obtain the contracted Gaussian functions for the basis with the
     given name, the atom with the given atomic number as well
     as the indicated extra information.
 
     @param bset_name   Name of the basis set
-    @param atnum  Atomic number
+    @param atnum  List of atomic numbers
     @param extra  Extra info required
 
-    Returns a list of dicts with the following information:
-        angular_momentum  Angular momentum of the function
-        coefficients      List of contraction coefficients
-        exponents         List of contraction exponents
+    Returns a list of dicts containing the following entries:
+        atnum:     atomic number
+        functions: list of dict with the keys:
+            angular_momentum  Angular momentum of the function
+            coefficients      List of contraction coefficients
+            exponents         List of contraction exponents
     """
     basis_url = json.loads(extra)["url"]
 
     # TODO Do not use element.by, use a custom translation table,
     #      which is cached from the emsl website
-    symbol = element.by_atomic_number(atnum).symbol
+    symbols = [element.by_atomic_number(atnum).symbol
+               for atnum in atnums]
 
     base_url = get_base_url()
     url = base_url + "/action/portlets.BasisSetAction/template/courier_content/panel/" \
@@ -237,7 +240,7 @@ def download_cgto_for_atom(bset_name, atnum, extra):
     params = {
         "bsurl": basis_url,
         "bsname": bset_name,
-        "elts":  symbol + " ",
+        "elts":  " ".join(symbols) + " ",
         "format": "Gaussian94",
         "minimize": "true",      # Get contracted version, decontraction can happen later
     }
@@ -255,14 +258,8 @@ def download_cgto_for_atom(bset_name, atnum, extra):
         raise EmslError("Only found dummy content in pre element for basis set name " +
                         bset_name)
 
-    ret = gaussian94.parse_g94(soup.pre.text)
-    if len(ret) != 1:
+    ret = gaussian94.loads(soup.pre.text)
+    if len(ret) < 1:
         raise AssertionError("Something went wrong parsing EMSL basis set text "
                              "\n{}".format(soup.pre.text))
-
-    return ret[0]["functions"]
-
-
-def download_cgto_for_basisset(bset_name, extra):
-    pass # TODO Improved version where the complete basis set is downloaded at once
-    # left for the caller to filter what he / she needs
+    return ret

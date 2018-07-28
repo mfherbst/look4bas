@@ -21,22 +21,25 @@ def cache_database(maxage=datetime.timedelta(days=14)):
         # ccrepo.add_to_database(db)
 
 
-def amend_cgto_definitions(basisset):
+def amend_cgto_definitions(db, basisset):
     """
     Download the contractions for all the elements of the basis dict passed.
     The dict is modified in-place and the result returned.
     """
-    for atom in basisset["atoms"]:
-        del atom["has_functions"]
+    atoms_orig = basisset["atoms"]
+    atnums = [at["atnum"] for at in atoms_orig]
+    for atom in atoms_orig:
+        if atom["has_functions"]:
+            raise NotImplementedError("Cannot used cached data from db yet.")
 
-        if basisset["source"] == "EMSL":
-            atom["functions"] = emsl.download_cgto_for_atom(basisset["name"],
-                                                            atom["atnum"],
-                                                            basisset["extra"])
-        elif basisset["source"] == "ccrepo":
-            atom["functions"] = ccrepo.download_cgto_for_atom(basisset["name"],
-                                                              atom["atnum"],
-                                                              basisset["extra"])
-        else:
-            raise ValueError("Unknown basis set source: {}".format(basisset["source"]))
+    if basisset["source"] == "EMSL":
+        basisset["atoms"] = emsl.download_cgto_for_atoms(basisset["name"],
+                                                         atnums, basisset["extra"])
+        # TODO write data to db
+    elif basisset["source"] == "ccrepo":
+        basisset["atoms"] = ccrepo.download_cgto_for_atoms(basisset["name"],
+                                                           atnums, basisset["extra"])
+        # TODO write data to db
+    else:
+        raise ValueError("Unknown basis set source: {}".format(basisset["source"]))
     return basisset

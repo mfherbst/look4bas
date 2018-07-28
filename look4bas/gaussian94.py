@@ -2,6 +2,9 @@
 from . import element
 
 
+NUMBER_TO_AM = ["S", "P", "D", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O"]
+
+
 def __float_fortran(string):
     return float(string.replace("d", "e").replace("D", "E"))
 
@@ -42,13 +45,12 @@ def __parse_element_block(block):
         raise ValueError("Element block starting with invalid element symbol "
                          "{}".format(symbol))
 
-    number_to_am = ["s", "p", "d", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o"]
     idx = 1
     while idx < len(lines):
         # New function definition starts with angular momentum
         # and the number of contractions
         amstr, n_contr, _ = lines[idx].split(maxsplit=2)
-        amstr = amstr.lower()
+        amstr = amstr.upper()
 
         try:
             n_contr = int(n_contr)
@@ -80,7 +82,7 @@ def __parse_element_block(block):
         else:
             # Standard cases:
             try:
-                am = number_to_am.index(amstr)
+                am = NUMBER_TO_AM.index(amstr)
             except ValueError:
                 raise ValueError("Invalid angular momentum string {}".format(amstr))
 
@@ -98,7 +100,7 @@ def __parse_element_block(block):
     return ret
 
 
-def parse_g94(string):
+def loads(string):
     """
     Parse a string, which represents a basis set file in g94
     format and return the defined basis functions
@@ -148,5 +150,33 @@ def parse_g94(string):
     return [__parse_element_block(block) for block in blocks[1:-1]]
 
 
-def write_g94(data):
-    pass
+def dumps(data):
+    """
+    Take a list of dicts containing the entries
+        atnum:     atomic number
+        functions: list of dict with the keys:
+            angular_momentum  Angular momentum of the function
+            coefficients      List of contraction coefficients
+            exponents         List of contraction exponents
+    and dump a string representing this basis set definition
+    in Gaussian94 format.
+    """
+    lines = []
+    for atom in data:
+        lines.append("****")
+        lines.append(element.by_atomic_number(atom["atnum"]).symbol + "     0")
+        for fun in atom["functions"]:
+            lfun = len(fun["coefficients"])
+            if lfun != len(fun["exponents"]):
+                raise ValueError("Length of coefficients and length of exponents "
+                                 "in contraction specification need to agree")
+
+            am = NUMBER_TO_AM[fun["angular_momentum"]]
+            lines.append(am + "   " + str(lfun) + "   1.00")
+
+            for i, coeff in enumerate(fun["coefficients"]):
+                exp = fun["exponents"][i]
+                fmt = "{0:15.7f}             {1: #11.8G}"
+                lines.append(fmt.format(exp, coeff))
+    lines.append("****\n")
+    return "\n".join(lines)

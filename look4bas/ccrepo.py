@@ -216,6 +216,11 @@ def add_to_database(db):
             db.insert_basisset_atom(basset_id, atnum, reference="")
 
 
+def download_cgto_for_atoms(bset_name, atnums, extra):
+    raise NotImplementedError("Not yet implemented. "
+                              "Use the below function for this.")
+
+
 def download_cgto_for_atom(bset_name, atnum, extra):
     """
     Obtain the contracted Gaussian functions for the basis with the
@@ -237,7 +242,7 @@ def download_cgto_for_atom(bset_name, atnum, extra):
     formats = get_formats_for_elem(element)  # Note: This is an https request!
     key = json.loads(extra)["key"]
     basdef = get_basis_set_definition(elem, key, formats["Gaussian"])
-    ret = gaussian94.parse_g94(basdef)
+    ret = gaussian94.loads(basdef)
     assert len(ret) == 1
     return ret[0]["functions"]
 
