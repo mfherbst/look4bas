@@ -113,10 +113,9 @@ def display_results(args, findings):
     if args.format is not None:
         list_format.extend(args.format)
     display_args.update(display.parse_list_format(list_format))
-    format_args = display.parse_list_format(list_format)
 
     print(len(findings), "basis sets matched your search:")
-    display.print_basissets(findings, **format_args)
+    display.print_basissets(findings, **display_args)
 
 
 def download_results(args, db, findings):

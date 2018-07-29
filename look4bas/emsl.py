@@ -55,44 +55,6 @@ def get_base_url():
     return __base_url_cache
 
 
-def download_basisset_raw(basisset, format):
-    """
-    Obtain a basisset from the emsl library in a certain format
-    for all the elements which are available
-
-    Return the downloaded basis set data as a string.
-    """
-    # TODO contraction=False does not seem to work and is hence
-    #      not exposed via the interface
-
-    base_url = get_base_url()
-    url = base_url + "/action/portlets.BasisSetAction/template/courier_content/panel/" \
-        "Main/eventSubmit_doDownload/true"
-
-    params = {
-        "bsurl": basisset['url'],
-        "bsname": basisset['name'],
-        "elts": " ".join(basisset['elements']) + " ",
-        "format": format,
-        # Or "false" if not optimised general contractions are desired
-        "minimize": "true",
-    }
-
-    ret = tlsutil.get_tls_fallback(url, params=params)
-    if not ret.ok:
-        raise EmslError("Error getting basis set " + basisset['name'] + " from emsl.")
-    soup = BeautifulSoup(ret.text, "lxml")
-
-    # The basis set should be encoded inside a pre tag
-    if soup.pre is None:
-        raise EmslError("No pre in result from emsl for basis set name " +
-                        basisset['name'])
-    if "$bsdata" in soup.pre.text:
-        raise EmslError("Only found dummy content in pre element for basis set name " +
-                        basisset['name'])
-    return soup.pre.text
-
-
 def _parse_list(string):
     """ Parse a list string into a list of strings"""
     if string[0] != "[" and string[-1] != "]":

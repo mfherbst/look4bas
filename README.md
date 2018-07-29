@@ -2,11 +2,12 @@
 [![PyPI version](https://img.shields.io/pypi/v/look4bas.svg)](https://pypi.org/project/look4bas)
 
 ``look4bas`` is a Python script to search and obtain Gaussian basis sets.
-Currently we only use the data of the
-[EMSL basis set exchange](https://bse.pnl.gov/bse/portal).
+Currently we use the data of the
+[EMSL basis set exchange](https://bse.pnl.gov/bse/portal)
+or the [ccrepo](http://grant-hill.group.shef.ac.uk/ccrepo/).
 
 On the first invocation (and from there on in regular intervals) the script
-consults the EMSL BSE website to download the current catalogue
+consults both websites to download the current catalogue
 of known basis sets.
 Note, that the actual basis set data is not downloaded.
 This is only done if the user uses the flag ``--download``, see below.
@@ -35,7 +36,7 @@ This is only done if the user uses the flag ``--download``, see below.
   ```bash
   look4bas "double zeta" --format elements
   ```
-  The same thing can be achied by using the pre-defined ``--extra`` output
+  The same thing can be achieved by using the pre-defined ``--extra`` output
   format style, i.e
   ```bash
   look4bas --extra "double zeta"

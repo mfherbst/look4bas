@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from . import tlsutil, gaussian94
-import re
-import json
 from bs4 import BeautifulSoup
+from . import tlsutil, gaussian94
+import json
+import re
 import warnings
 
 """ccrepo base url"""
@@ -52,7 +52,7 @@ def get_element_list():
         name = name.strip("/")
 
         sym = sym.text
-        elem_obj = {"symbol": sym, "name": name, "number": atnum}
+        elem_obj = {"symbol": sym, "name": name, "atnum": atnum}
         elements.append(elem_obj)
     return elements
 
@@ -135,93 +135,38 @@ def get_formats_for_elem(element):
     return __get_options("program", element)
 
 
-def download_basisset_list():
+def add_to_database(db):
+    """
+    Add the basis set definitions to the database
+    """
     elements = get_element_list()
+    db.create_table_of_elements("ccrepo", elements)
 
+    # Obtain unique list of basis sets and the elements
+    # these are defined for
     bases = dict()
     for elem in elements:
         bas = get_basis_sets_for_elem(elem)
 
         for name in bas:
             if name in bases:
-                bases[name]["elements"].append(dict(elem))
+                bases[name]["atoms"].append(elem["atnum"])
             else:
                 bases[name] = {
                     "name": name,
                     "key":  bas[name],
-                    "elements": [dict(elem)],
+                    "atoms": [elem["atnum"]],
                 }
-    return [bases[k] for k in bases]
+    bases = list(bases.values())
 
-
-def merge_gaussian_basis(parts):
-    startlines = []
-    bodylines = []
-    appended_BASIS_line = False
-    for i, part in enumerate(parts):
-        # Did we already get the BASIS= line for the element?
-        got_BASIS_line = False
-        for line in part.split("\n"):
-            if got_BASIS_line:
-                bodylines.append(line)
-            elif line.startswith("BASIS="):
-                got_BASIS_line = True
-                if not appended_BASIS_line:
-                    startlines.append(line)
-                    appended_BASIS_line = True
-            elif len(line) > 0 and line != "!":
-                startlines.append(line)
-        if not got_BASIS_line:
-            raise CcrepoError("Did not get any BASIS= line for the " +
-                              str(i) + "th gaussian basis file part.")
-    return "\n".join(startlines) + "\n\n****\n" + "\n".join(bodylines)
-
-
-def download_basisset_raw(basisset, format):
-    # TODO We assume the same formats are available for all elements
-    element = basisset["elements"][0]
-    formats = get_formats_for_elem(element)
-    if format not in formats:
-        raise ValueError("The format " + format + " is unsupported.")
-
-    basis_set_files = [
-        (elem["symbol"], get_basis_set_definition(elem, basisset["key"], formats[format]))
-        for elem in basisset["elements"]
-    ]
-
-    # Remove empty basis set files (This is due to an upstream error)
-    # and warn about them.
-    basis_set_empty = [elem for elem, basis in basis_set_files if len(basis) == 0]
-    if len(basis_set_empty) > 0:
-        warnings.warn("While obtaing the basis set " + basisset["name"] +
-                      " these elements gave rise to empty basis definitions: " +
-                      ", ".join(basis_set_empty) + ". " +
-                      "This typically indicates an error at the ccrepo website.")
-    basis_set_files = [bset for elem, bset in basis_set_files if len(bset) > 0]
-
-    if format == "Gaussian":
-        return merge_gaussian_basis(basis_set_files)
-    else:
-        raise NotImplementedError("Only merging gaussian basis sets is "
-                                  "currently implemented.")
-
-
-def add_to_database(db):
-    """
-    Add the basis set definitions to the database
-    """
-    lst = download_basisset_list()
-
-    for bas in lst:
-        extra = json.dumps({"key": bas["key"]})
-        basset_id = db.insert_basisset(bas["name"], description="",
+    # Now add all of these to the database:
+    for basset in bases:
+        # TODO This is a hack for now to indicate that this is from ccrepo
+        description = "<ccrepo>"
+        extra = json.dumps({"key": basset["key"]})
+        basset_id = db.insert_basisset(basset["name"], description=description,
                                        source="ccrepo", extra=extra)
-
-        for elem in bas["elements"]:
-            # TODO Do not use element.by, use a custom translation table,
-            #      which is cached from the ccrepo website
-            # TODO This is obsolete now, use elem_list or db lookup instead
-            atnum = element.by_symbol(elem["symbol"]).atom_number
+        for atnum in basset["atoms"]:
             db.insert_basisset_atom(basset_id, atnum, reference="")
 
 
@@ -245,31 +190,27 @@ def download_cgto_for_atoms(elem_list, bset_name, atnums, extra):
     """
     key = json.loads(extra)["key"]
 
-    # TODO This is obsolete now, use elem_list or db lookup instead
-    elem0 = element.by_atomic_number(atnums[0])
-    formats = get_formats_for_elem(elem0._asdict())  # Note: This is an https request!
-
+    basis_set_empty = []
     ret = []
     for atnum in atnums:
-        # TODO This is obsolete now, use elem_list or db lookup instead
-        elem = element.by_atomic_number(atnum)
-        basdef = get_basis_set_definition(elem._asdict(), key, formats["Gaussian"])
+        basdef = get_basis_set_definition(elem_list[atnum], key, "Gaussian")
+
+        # Remove empty basis set files (This is due to an upstream error)
+        # and warn about them.
+        if len(basdef) == 0:
+            basis_set_empty += elem_list[atnum]["symbol"]
+            continue
 
         # Replace the BASIS= line by ****
         basdef = re.sub("\nBASIS=[^\n]+\n", "\n****\n", basdef)
 
+        # Parse obtained data and append to ret
         basparsed = gaussian94.loads(basdef)
         assert len(basparsed) == 1
         ret.append(basparsed[0])
+
+    warnings.warn("While obtaing the basis set " + bset_name +
+                  " these elements gave rise to empty basis definitions: " +
+                  ", ".join(basis_set_empty) + ". " +
+                  "This typically indicates an error at the ccrepo website.")
     return ret
-
-
-def main(format="Gaussian"):
-    ss = 22
-    data = download_basisset_list()
-    print("Selecting set: ", data[ss]["name"])
-    print(download_basisset_raw(data[ss], format))
-
-
-if __name__ == "__main__":
-    main()

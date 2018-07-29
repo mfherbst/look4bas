@@ -15,6 +15,9 @@ def database(dbfile=os.path.join(config.cache_folder, "basis_sets.db"),
     Obtain a Database object which guaranteed to be not older
     than maxage. If maxage is 0 or None, then the database
     will always be created from scratch.
+
+    @param use_ccrepo     Obtaining data from ccrepo is pretty slow at the
+                          moment. For this reason it is disabled by default
     """
     db = dbcache.Database(dbfile)
 
@@ -24,12 +27,15 @@ def database(dbfile=os.path.join(config.cache_folder, "basis_sets.db"),
     else:
         db.clear()
 
+        # TODO I do not fancy the print statement here, but I cannot see how else to do this.
+        print("Updating cached data ... this may take a while.")
+
         # Add iupac elements to db
         db.create_table_of_elements("IUPAC",
                                     [e for e in elements.iupac_list() if e["atnum"] > 0])
 
         emsl.add_to_database(db)
-        # ccrepo.add_to_database(db)  # TODO Not yet fully functional
+        ccrepo.add_to_database(db)
         return db
 
 

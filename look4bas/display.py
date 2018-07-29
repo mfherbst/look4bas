@@ -48,7 +48,7 @@ colours_ANSI = {
 def parse_list_format(format_list):
     """Parse the format for the list_basissets function
     and return a dictionary key -> value from it"""
-    ret = {flag: None for flag in __display_formats_base}
+    ret = {}
 
     def negate_flag(flag):
         return flag[3:] if flag.find("no-") == 0 else "no-" + flag
@@ -94,8 +94,8 @@ def print_basissets(findings, highlight_atnums=[],
                         else sym for atnum, sym in atnum_symbols)
 
     # Determine maximal lengths of the strings we have:
-    maxlen_name = max(len(bset["name"]) for bset in findings)
-    maxlen_descr = max(len(bset["description"]) for bset in findings)
+    maxlen_name = max(1, max(len(bset["name"]) for bset in findings))
+    maxlen_descr = max(1, max(len(bset["description"]) for bset in findings))
 
     # Ignore element string length if we don't care
     if elements:
