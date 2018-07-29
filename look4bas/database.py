@@ -403,7 +403,7 @@ class Database:
             return ret[0]
 
     def search_basisset(self, name=None, description=None, ignore_case=False,
-                        has_atnums=[], source=None, regex=False):
+                        has_atnums=[], source=None, regex=False, pattern=None):
         """
         Function to filter basis sets. If no arguments are provided,
         all registered basis sets will be returned.
@@ -412,21 +412,27 @@ class Database:
                 or regular expression to be matched against the name.
         description   String to be contained in the description
                       or regular expression to be matched against it.
+        pattern      String to be contained either in the basis set name
+                     *or* the description or regex to be matching
+                     against either these fields.
         has_atnums   Atoms to be contained in this basis set
                      Should be a list of atomic numbers.
         source       The source of the basis set. Is matched exactly.
         ignore_case  Regular expression and string matchings
-                     in name and description are done ignoring case.
-        regex        Are the strings supplied to name and descriptions
+                     in name, pattern and description are done ignoring case.
+        regex        Are the strings supplied to name, descriptions
+                     and pattern
                      to be interpreted as regular exrpessions
 
         Returns a list of dicts with content id, name, description,
-        source and extra and all atoms matching has_atnums.
+        source and extra and their respective atoms.
         """
         if name is not None and not isinstance(name, str):
             raise TypeError("name needs to be None or a string")
         if description is not None and not isinstance(description, str):
             raise TypeError("descrption needs to be None or a string")
+        if pattern is not None and not isinstance(pattern, str):
+            raise TypeError("pattern needs to be None or a string")
         if source is not None and not isinstance(source, str):
             raise TypeError("source needs to be None or a string")
         if not isinstance(has_atnums, list):
@@ -461,6 +467,12 @@ class Database:
         if description:
             wheres.append(match_field("Description"))
             args.append(description)
+        if pattern:
+            q = "( " + match_field("Description") + \
+                " OR " + match_field("Name") + " )"
+            wheres.append(q)
+            args.append(pattern)
+            args.append(pattern)
         if source:
             wheres.append("Source = ?")
             args.append(source)
@@ -469,7 +481,8 @@ class Database:
                 if not isinstance(atnum, int):
                     raise TypeError("All entries of has_atnums need to be integers")
                 args.append(atnum)
-            q = "(" + " OR ".join(len(has_atnums) * ["AtomPerBasis.AtNum = ?"]) + ")"
+            q = "(BasisSet.Id IN (SELECT BasisSetID FROM AtomPerBasis WHERE " + \
+                " OR ".join(len(has_atnums) * ["AtNum = ?"]) + "))"
             wheres.append(q)
 
         if wheres:

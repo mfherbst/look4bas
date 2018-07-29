@@ -51,6 +51,5 @@ This is only done if the user uses the flag ``--download``, see below.
 - Python >= 3.4
 - argparse
 - [Beautiful Soup](https://pypi.python.org/pypi/beautifulsoup4) >= 4.2
-- [PyYAML](https://pypi.python.org/pypi/PyYAML) >= 3.10
 - [requests](https://pypi.python.org/pypi/requests) >= 2.2
 - shutil
