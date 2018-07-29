@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from . import gaussian94
+import os
 
 """ Dictionary of the basis set formats supported by this script,
     mapped to the default file extension used.
@@ -15,20 +16,22 @@ def normalise_name(name):
     return "".join(["I" if c == "/" else c for c in name.lower()])
 
 
-def download_basissets(l, fmt, destination="."):
-    """Download all basis sets in the list using the supplied format
-    (in optimally contracted form).
+def save_basisset(bset, fmts, destination="."):
     """
-    print("Downloading " + str(len(l)) + " basis sets in " + fmt + " format:")
-    for b in l:
-        path = destination + "/" + normalise_name(b["name"]) + "." + emsl.formats[fmt]
+    Save the provided basis set in the given formats
+    to the provided destination directory.
+    """
 
+    for fmt in fmts:
+        if fmt == "Gaussian94":
+            data = gaussian94.dumps(bset["atoms"])
+        else:
+            raise NotImplementedError("Format {} not implemented.".format(fmt))
+
+        path = destination + "/" + normalise_name(bset["name"]) + "." + formats[fmt]
         if os.path.exists(path):
             print("   Warn: Skipping " + path + " since file already exists")
-            continue
-
-        print("   ", b["name"], " to ", path)
-        data = emsl.download_basisset_raw(b, fmt)
-        open(path, "w").write(data)
-
-
+        else:
+            print("   ", bset["name"], " to ", path)
+            with open(path, "w") as f:
+                f.write(data)

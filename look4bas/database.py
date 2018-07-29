@@ -59,11 +59,11 @@ class Database:
 
     def __register_user_functions(self):
         def matches(expr, item):
-            return re.match(expr, item) is not None
+            return re.search(expr, item) is not None
         self.conn.create_function("MATCHES", 2, matches)
 
         def matchesi(expr, item):
-            return re.match(expr, item, flags=re.I) is not None
+            return re.search(expr, item, flags=re.I) is not None
         self.conn.create_function("MATCHESI", 2, matchesi)
 
     @property

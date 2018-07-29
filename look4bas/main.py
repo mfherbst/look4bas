@@ -119,6 +119,34 @@ def display_results(args, findings):
     display.print_basissets(findings, **format_args)
 
 
+def download_results(args, db, findings):
+    # Append at least the default format to download
+    args.download.extend(config.default_download_formats)
+
+    # TODO Later we probably want a more elaborate selection
+    #      mechanism where one can select amongst the matches
+    #      for those to be downloaded
+    #
+    #      I.e. ideally we would have some interactive selection
+    #      mechanism here, where maybe file names can be changed
+    #
+    #      or basis sets can be decontracted or ...
+
+    # Obtain missing cGTO definions by downloading them
+    # from the net if required
+    print("Downloading basis set data for {} basis sets:".format(len(findings)))
+    for bset in findings:
+        # TODO One could maybe use colour here as well with
+        #      the colour scheme here and on display matching up
+        print("    {:50s} (from {})".format(bset["name"], bset["source"]))
+        api.amend_cgto_definitions(db, bset)
+
+    print()
+    print("Saving {} basis sets on disk:".format(len(findings)))
+    for bset in findings:
+        store.save_basisset(bset, args.download, args.destination)
+
+
 def main():
     # Parse the commandline arguments
     parser = argparse.ArgumentParser(
@@ -139,24 +167,10 @@ def main():
     if not findings:
         raise SystemExit("No basis set matched your search")
 
-    if args.download:
-        raise NotImplementedError()
-        pass
-        #        # If we want download, than append at least the default
-        #        # format to download
-        #        args.download.extend(config.default_download_formats)
-        #
-        #        for fmt in args.download:
-        #            download_basissets(li, fmt, destination=args.destination)
-        #
-        #        # Download cgto definitions
-        #        ccpvdz = findings[0]
-        #        ccpvdz = api.amend_cgto_definitions(db, ccpvdz)
-        #
-        #        print(gaussian94.dumps(ccpvdz["atoms"]))
-        #        with open(ccpvdz["name"] + ".g94", "w") as f:
-        #            f.write(gaussian94.dumps(ccpvdz["atoms"]))
-        #            raise NotImplementedError()
+    # Since args.download may be absent or present, but without a value,
+    # we cannot plainly use 'if args.download' here.
+    if args.download is not None:
+        download_results(args, db, findings)
     else:
         display_results(args, findings)
 
