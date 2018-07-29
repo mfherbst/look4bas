@@ -54,3 +54,7 @@ This is only done if the user uses the flag ``--download``, see below.
 - [Beautiful Soup](https://pypi.python.org/pypi/beautifulsoup4) >= 4.2
 - [requests](https://pypi.python.org/pypi/requests) >= 2.2
 - shutil
+
+## Citing
+If you use the script and find it useful, please cite this software:
+[![DOI](https://zenodo.org/badge/89177225.svg)](https://zenodo.org/badge/latestdoi/89177225)
