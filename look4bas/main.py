@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-from look4bas import sources, config, gaussian94
+from look4bas import api, gaussian94
 
 
+# The main function and the user interface happens here
 def main():
     # Update database (use internet if too old)
-    db = sources.cache_database(config.cache_maxage)
+    db = api.database()
 
     # Search for ccpvdz
     findings = db.search_basisset(name="cc-pVDZ$", regex=True, has_atnums=[2, 6])
@@ -16,7 +17,7 @@ def main():
     # Found ... now obtain all details
     ccpvdz = db.obtain_basisset(findings[0]["id"])
     # and the contractions
-    ccpvdz = sources.amend_cgto_definitions(db, ccpvdz)
+    ccpvdz = api.amend_cgto_definitions(db, ccpvdz)
 
     print(gaussian94.dumps(ccpvdz["atoms"]))
     with open(ccpvdz["name"] + ".g94", "w") as f:

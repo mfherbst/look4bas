@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from . import element
+from . import elements
 
 
 NUMBER_TO_AM = ["S", "P", "D", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O"]
@@ -31,16 +31,14 @@ def __parse_contractions(lines, *outputs):
                              "Culprit line is '{}'".format(line))
 
 
-def __parse_element_block(block):
+def __parse_element_block(block, elem_symbols_lower):
     ret = {"functions": []}
     lines = [__strip_comments(l) for l in block.split("\n")]
     lines = [l for l in lines if len(l) > 0]
 
     symbol, _ = lines[0].split(maxsplit=1)
     try:
-        # TODO Do not use element.by Better use a custom translation table
-        #      which is passed by the appropriate source on call of this function
-        ret["atnum"] = element.by_symbol(symbol).atom_number
+        ret["atnum"] = elem_symbols_lower.index(symbol.lower())
     except KeyError:
         raise ValueError("Element block starting with invalid element symbol "
                          "{}".format(symbol))
@@ -100,7 +98,7 @@ def __parse_element_block(block):
     return ret
 
 
-def loads(string):
+def loads(string, elem_list=elements.iupac_list()):
     """
     Parse a string, which represents a basis set file in g94
     format and return the defined basis functions
@@ -145,12 +143,15 @@ def loads(string):
     if len(__strip_comments(blocks[-1])) > 0:
         raise ValueError("Found valid content after final '****' sequence")
 
+    # Convert the elem_list to all-lower-case
+    elem_symbols_lower = [e["symbol"].lower() for e in elem_list]
+
     # The first and last block are just comments or trailing newlines and can
     # be ignored
-    return [__parse_element_block(block) for block in blocks[1:-1]]
+    return [__parse_element_block(block, elem_symbols_lower) for block in blocks[1:-1]]
 
 
-def dumps(data):
+def dumps(data, elem_list=elements.iupac_list()):
     """
     Take a list of dicts containing the entries
         atnum:     atomic number
@@ -164,7 +165,7 @@ def dumps(data):
     lines = []
     for atom in data:
         lines.append("****")
-        lines.append(element.by_atomic_number(atom["atnum"]).symbol + "     0")
+        lines.append(elem_list[atom["atnum"]]["symbol"] + "     0")
         for fun in atom["functions"]:
             lfun = len(fun["coefficients"])
             if lfun != len(fun["exponents"]):

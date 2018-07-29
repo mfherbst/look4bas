@@ -2,7 +2,7 @@
 
 from bs4 import BeautifulSoup
 import re
-from . import tlsutil, gaussian94, element
+from . import tlsutil, gaussian94
 import json
 
 
@@ -134,11 +134,14 @@ def _parse_basis_line(line):
     }
 
 
-def download_basisset_list():
+def download_basisset_list(return_elements=False):
     """
     Download and parse the list of basis sets from emsl
     Returns a list of basis set dictionaries
     """
+    # TODO This function should go in the future and merged
+    #      into add_to_database
+
     base_url = get_base_url()
     ret = tlsutil.get_tls_fallback(base_url + "/panel/Main/template/content")
 
@@ -184,14 +187,42 @@ def download_basisset_list():
     if len(basis_sets) == 0:
         raise EmslError("No basis sets obtained from emsl bse data")
 
-    return basis_sets
+    if not return_elements:
+        return basis_sets
+
+    elements = []  # The element list to return
+    for div in soup.find_all(class_="table-row", name="div"):
+        for elem in div.find_all(class_="elt", name="a"):
+            # Loop over the periodic table that the emsl start page
+            # produces and extract the elements
+
+            if "id" not in elem.attrs or "title" not in elem.attrs:
+                raise EmslError("Elements of the periodic table does not "
+                                "contain attribute "
+                                "'id' or 'title': {}".format(str(elem)))
+            try:
+                atnum = int(elem["id"])
+            except ValueError:
+                raise EmslError("Elements of the periodic table have a non-integer id "
+                                "which cannot be interpreted as the atomic number: "
+                                "{}".format(str(elem)))
+
+            elements.append({
+                "symbol": elem.text,
+                "atnum": atnum,
+                "name": elem["title"]
+            })
+    if len(elements) == 0:
+        raise EmslError("No elements obtained from emsl bse data")
+    return elements, basis_sets
 
 
 def add_to_database(db):
     """
     Add the basis set definitions to the database
     """
-    lst = download_basisset_list()
+    elements, lst = download_basisset_list(return_elements=True)
+    db.create_table_of_elements("EMSL", elements)
 
     for bas in lst:
         extra = json.dumps({"url": bas["url"]})
@@ -200,21 +231,22 @@ def add_to_database(db):
 
         for atom in bas["elements"]:
             try:
-                # TODO Do not use element.by, use a custom translation table,
-                #      which is cached from the emsl website
-                atnum = element.by_symbol(atom).atom_number
-            except KeyError as e:
-                print("Skipping atom {}: ".format(atom) + str(e))
+                element = db.search_element("EMSL", atom)
+            except ValueError as e:
+                if atom != "X":
+                    # atom == X is a known issue in some of the basis set definitions
+                    print("Skipping atom {}: ".format(atom) + str(e))
                 continue
-            db.insert_basisset_atom(basset_id, atnum, reference="")
+            db.insert_basisset_atom(basset_id, element["atnum"], reference="")
 
 
-def download_cgto_for_atoms(bset_name, atnums, extra):
+def download_cgto_for_atoms(elem_list, bset_name, atnums, extra):
     """
     Obtain the contracted Gaussian functions for the basis with the
     given name, the atom with the given atomic number as well
     as the indicated extra information.
 
+    @param elem_list   List to use for element symbol <-> atomic number lookups
     @param bset_name   Name of the basis set
     @param atnum  List of atomic numbers
     @param extra  Extra info required
@@ -228,10 +260,8 @@ def download_cgto_for_atoms(bset_name, atnums, extra):
     """
     basis_url = json.loads(extra)["url"]
 
-    # TODO Do not use element.by, use a custom translation table,
-    #      which is cached from the emsl website
-    symbols = [element.by_atomic_number(atnum).symbol
-               for atnum in atnums]
+    # Lookup atomic numbers to symbols
+    symbols = [elem_list[atnum]["symbol"] for atnum in atnums]
 
     base_url = get_base_url()
     url = base_url + "/action/portlets.BasisSetAction/template/courier_content/panel/" \
@@ -252,13 +282,12 @@ def download_cgto_for_atoms(bset_name, atnums, extra):
 
     # The basis set should be encoded inside a pre tag
     if soup.pre is None:
-        raise EmslError("No pre in result from emsl for basis set name " +
-                        bset_name)
+        raise EmslError("No pre in result from emsl for basis set name " + bset_name)
     if "$bsdata" in soup.pre.text:
         raise EmslError("Only found dummy content in pre element for basis set name " +
                         bset_name)
 
-    ret = gaussian94.loads(soup.pre.text)
+    ret = gaussian94.loads(soup.pre.text, elem_list=elem_list)
     if len(ret) < 1:
         raise AssertionError("Something went wrong parsing EMSL basis set text "
                              "\n{}".format(soup.pre.text))

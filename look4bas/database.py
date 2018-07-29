@@ -1,14 +1,32 @@
 #!/usr/bin/env python3
 
-import sqlite3 as sqlite
+import codecs
+import datetime
 import os
 import re
-import datetime
-from . import config
+import sqlite3 as sqlite
 
 
-# Current expected version of the database
-DEFAULT_DB_FILE = os.path.join(config.cache_folder, "basis_sets.db")
+def capitalise(word):
+    return word[0].upper() + word[1:]
+
+
+def quote_identifier(s, errors="strict"):
+    """
+    Quote identifiers for sqlite (e.g. table names)
+    """
+    encodable = s.encode("utf-8", errors).decode("utf-8")
+
+    nul_index = encodable.find("\x00")
+
+    if nul_index >= 0:
+        error = UnicodeEncodeError("NUL-terminated utf-8", encodable,
+                                   nul_index, nul_index + 1, "NUL not allowed")
+        error_handler = codecs.lookup_error(errors)
+        replacement, _ = error_handler(error)
+        encodable = encodable.replace("\x00", replacement)
+
+    return "\"" + encodable.replace("\"", "\"\"") + "\""
 
 
 class Database:
@@ -17,7 +35,7 @@ class Database:
     """Current database version"""
     database_version = 1
 
-    def __init__(self, dbfile=DEFAULT_DB_FILE, force_create=False):
+    def __init__(self, dbfile):
         """
         Initialise specifying database to work on
         """
@@ -25,8 +43,6 @@ class Database:
         self.conn = None
 
         if not os.path.isfile(dbfile):
-            self.clear()
-        elif force_create:
             self.clear()
         else:
             conn = sqlite.connect(dbfile)
@@ -125,6 +141,102 @@ class Database:
         """
         self.conn.close()
         self.conn = None
+
+    def create_table_of_elements(self, source, elements):
+        """
+        Create a table of elements in a convention used
+        by a particular source (e.g. IUPAC, EMSL, ccrepo).
+
+        elements should be a list of dicts with the entries
+            atnum:   Atom number
+            symbol:  Atom symbol
+            name:    Atom name
+        """
+        tablename = quote_identifier("Elements" + str(source))
+        with self.conn:
+            cur = self.conn.cursor()
+
+            # Drop the table if it exists
+            cur.execute("DROP TABLE IF EXISTS " + tablename)
+            cur.execute("CREATE TABLE " + tablename + " ("
+                        "AtNum INTEGER PRIMARY KEY, "  # Atomic number
+                        "Symbol TEXT, "  # Atom symbol in all lower case
+                        "Name TEXT"      # Atom name
+                        ")")
+
+            for elem in elements:
+                symbol = elem["symbol"].lower()
+                cur.execute(
+                    "INSERT INTO " + tablename + " "
+                    "(AtNum, Symbol, Name) VALUES (?, ?, ?)",
+                    (elem["atnum"], symbol, elem["name"])
+                )
+
+    def search_element(self, source, key):
+        """
+        Search an element by the given key in symbol,
+        name and atom number and return a dict with the keys
+            atnum:   Atom number
+            symbol:  Atom symbol
+            name:    Atom name
+
+        @param source  The source to search in (e.g. EMSL, ccrepo, IUPAC)
+        @param key     The key to search for
+        """
+        if isinstance(key, int):
+            query = "Atnum = ?"
+            args = [key]
+        elif isinstance(key, str):
+            query = "Name = ? OR Symbol = ?"
+            args = [key.lower(), key.lower()]
+        else:
+            raise TypeError("Key may either be a string or an integer")
+
+        tablename = quote_identifier("Elements" + str(source))
+        with self.conn:
+            cur = self.conn.cursor()
+
+            cur.execute("SELECT name FROM sqlite_master "
+                        "WHERE type='table' AND name=" + tablename)
+            res = cur.fetchone()
+            if res is None:
+                raise ValueError("Unknown source {}".format(source))
+
+            cur.execute("SELECT * FROM " + tablename + " " + "WHERE " + query, args)
+            res = cur.fetchall()
+
+        if len(res) == 0:
+            raise ValueError("No element not found, which matches key {}".format(key))
+        assert len(res) == 1
+        entry = res[0]
+
+        symbol = capitalise(entry[1])
+        return {"atnum": entry[0], "symbol": symbol, "name": entry[2]}
+
+    def obtain_element_list(self, source):
+        """
+        Build the list of elements per atomic number for a particular
+        source (e.g. EMSL, ccrepo, IUPAC).
+
+        The first entry of the list is "X", which is a dummy place holder.
+        """
+        tablename = quote_identifier("Elements" + str(source))
+        with self.conn:
+            cur = self.conn.cursor()
+
+            cur.execute("SELECT name FROM sqlite_master "
+                        "WHERE type='table' AND name=" + tablename)
+            res = cur.fetchone()
+            if res is None:
+                raise ValueError("Unknown source {}".format(source))
+
+            cur.execute("SELECT AtNum, Symbol, Name FROM " + tablename +
+                        " ORDER BY AtNum ASC")
+            ret = [{"atnum": 0, "symbol": "X", "name": "dummy"}]
+            for atnum, symbol, name in cur.fetchall():
+                ret.append({"atnum": atnum, "name": name,
+                            "symbol": capitalise(symbol)})
+        return ret
 
     def insert_basis_function(self, atbas_id, angular_momentum, coefficients, exponents):
         """

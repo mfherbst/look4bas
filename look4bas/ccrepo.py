@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from . import tlsutil, element, gaussian94
+from . import tlsutil, gaussian94
 import re
 import json
 from bs4 import BeautifulSoup
@@ -220,16 +220,18 @@ def add_to_database(db):
         for elem in bas["elements"]:
             # TODO Do not use element.by, use a custom translation table,
             #      which is cached from the ccrepo website
+            # TODO This is obsolete now, use elem_list or db lookup instead
             atnum = element.by_symbol(elem["symbol"]).atom_number
             db.insert_basisset_atom(basset_id, atnum, reference="")
 
 
-def download_cgto_for_atoms(bset_name, atnums, extra):
+def download_cgto_for_atoms(elem_list, bset_name, atnums, extra):
     """
     Obtain the contracted Gaussian functions for the basis with the
     given name, the atom with the given atomic number as well
     as the indicated extra information.
 
+    @param elem_list   List to use for element symbol <-> atomic number lookups
     @param bset_name   Name of the basis set
     @param atnum  List of atomic numbers
     @param extra  Extra info required
@@ -243,11 +245,13 @@ def download_cgto_for_atoms(bset_name, atnums, extra):
     """
     key = json.loads(extra)["key"]
 
+    # TODO This is obsolete now, use elem_list or db lookup instead
     elem0 = element.by_atomic_number(atnums[0])
     formats = get_formats_for_elem(elem0._asdict())  # Note: This is an https request!
 
     ret = []
     for atnum in atnums:
+        # TODO This is obsolete now, use elem_list or db lookup instead
         elem = element.by_atomic_number(atnum)
         basdef = get_basis_set_definition(elem._asdict(), key, formats["Gaussian"])
 
