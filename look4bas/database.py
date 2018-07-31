@@ -478,12 +478,12 @@ class Database:
             args.append(source)
         if has_atnums:
             for atnum in has_atnums:
+                wheres.append(
+                    "BasisSet.Id IN (SELECT BasisSetID FROM AtomPerBasis WHERE AtNum = ?)"
+                )
                 if not isinstance(atnum, int):
                     raise TypeError("All entries of has_atnums need to be integers")
                 args.append(atnum)
-            q = "(BasisSet.Id IN (SELECT BasisSetID FROM AtomPerBasis WHERE " + \
-                " OR ".join(len(has_atnums) * ["AtNum = ?"]) + "))"
-            wheres.append(q)
 
         if wheres:
             query = prefix + " WHERE " + " AND ".join(wheres)
