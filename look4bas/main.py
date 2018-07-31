@@ -7,8 +7,9 @@ import look4bas
 
 
 def add_cmd_args_to(parser):
-    parser.add_argument("--force-update", action="store_true",
-                        help="Force the cached database to be updated.")
+    parser.add_argument("--dbfile", default=config.dbfile,
+                        help="File where the database of basis set "
+                        "information is cached.")
     parser.add_argument("--destination", default=".", type=str, metavar="directory",
                         help="When downloading basis sets using --download store them in "
                         "this directory. (Default: '.', i.e. the current working "
@@ -152,7 +153,8 @@ def main():
     cmd_post_parsing_cleanup(args)
 
     # Setup database:
-    db = look4bas.Database(config.dbfile)
+    db = look4bas.Database(args.dbfile)
+    look4bas.update_database(db)
 
     # Search for basis sets
     findings = lookup_basissets(db, args)
