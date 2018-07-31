@@ -199,6 +199,8 @@ def add_to_database(db):
                     # atom == X is a known issue in some of the basis set definitions
                     print("Skipping atom {}: ".format(atom) + str(e))
                 continue
+
+            # TODO Add reference
             db.insert_basisset_atom(basset_id, element["atnum"], reference="")
 
 
