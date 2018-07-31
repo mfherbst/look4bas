@@ -114,7 +114,6 @@ def display_results(args, findings):
         list_format.extend(args.format)
     display_args.update(display.parse_list_format(list_format))
 
-    print(len(findings), "basis sets matched your search:")
     display.print_basissets(findings, **display_args)
 
 
