@@ -2,7 +2,8 @@
 
 
 import argparse
-from look4bas import api, display, store, config, elements
+from look4bas import display, store, config, elements
+import look4bas
 
 
 def add_cmd_args_to(parser):
@@ -130,18 +131,11 @@ def download_results(args, db, findings):
     #
     #      or basis sets can be decontracted or ...
 
-    # Obtain missing cGTO definions by downloading them
-    # from the net if required
-    print("Downloading basis set data for {} basis sets:".format(len(findings)))
     for bset in findings:
         # TODO One could maybe use colour here as well with
         #      the colour scheme here and on display matching up
-        print("    {:50s} (from {})".format(bset["name"], bset["source"]))
-        api.amend_cgto_definitions(db, bset)
-
-    print()
-    print("Saving {} basis sets on disk:".format(len(findings)))
-    for bset in findings:
+        print("Obtaining {:50s} (from {})".format(bset["name"], bset["source"]))
+        bset = db.lookup_basisset_full(bset)
         store.save_basisset(bset, args.download, args.destination)
 
 
@@ -157,8 +151,8 @@ def main():
     args = parser.parse_args()
     cmd_post_parsing_cleanup(args)
 
-    # Obtain cached data
-    db = api.database()
+    # Setup database:
+    db = look4bas.Database(config.dbfile)
 
     # Search for basis sets
     findings = lookup_basissets(db, args)

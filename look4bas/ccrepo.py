@@ -194,7 +194,7 @@ def add_to_database(db):
                                        source="ccrepo", extra=extra)
         for atnum in basset["atoms"]:
             # TODO Add reference
-            db.insert_basisset_atom(basset_id, atnum, reference="")
+            db.insert_atom_to_basisset(basset_id, atnum, reference="")
 
 
 def download_cgto_for_atoms(elem_list, bset_name, atnums, extra):

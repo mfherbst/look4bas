@@ -213,7 +213,7 @@ class Database:
         symbol = capitalise(entry[1])
         return {"atnum": entry[0], "symbol": symbol, "name": entry[2]}
 
-    def obtain_element_list(self, source):
+    def lookup_element_list(self, source):
         """
         Build the list of elements per atomic number for a particular
         source (e.g. EMSL, ccrepo, IUPAC).
@@ -276,7 +276,7 @@ class Database:
             # Mark that the appropriate element has basis functions set in the db
             cur.execute("UPDATE AtomPerBasis SET HasFunctions = 1 WHERE Id = ?", atbas_id)
 
-    def obtain_basis_functions(self, atbas_id):
+    def lookup_basis_functions(self, atbas_id):
         """
         Select all basis functions belonging to a particular atbas_id.
 
@@ -310,7 +310,7 @@ class Database:
                     ret[fun_id]["exponents"].append(exp)
         return list(ret.values())
 
-    def insert_basisset_atom(self, basset_id, atnum, reference=""):
+    def insert_atom_to_basisset(self, basset_id, atnum, reference=""):
         """
         Insert a new atom for a particular basis set.
 
@@ -370,6 +370,10 @@ class Database:
             basset["id"], basset["name"], basset["description"], \
                 basset["source"], basset["extra"], \
                 atbas_id, atnum, has_functions = row
+
+            if basset["id"] is None or atnum is None:
+                continue  # Skip rows with undefined fields
+
             basset["atoms"].append({
                 "atnum": atnum,
                 "atbas_id": atbas_id,
@@ -378,16 +382,28 @@ class Database:
             ret[row[0]] = basset
         return list(ret.values())
 
-    def obtain_basisset(self, basset_id):
+    def lookup_basisset(self, basisset):
         """
-        Return information about the basis set along with the list of defined
-        atoms and their atbas_id to perform further queries with
-        obtain_basis_functions. If the has_functions flag is false,
+        Lookup information about the basis set in the database and return
+        the list of defined atoms and their atbas_id to perform further queries
+        with lookup_basis_functions. If the has_functions flag is false,
         then there are no basis functions defined in the database for this
-        combination of atom and basis set.
+        combination of atom and basis set. Use lookup_basisset_full
+        to amend the database by downloading information from the appropriate
+        internet source.
+
+        @param basisset     Basis set dict as returned by search_basisset or
+                             basis set id.
         """
-        if not isinstance(basset_id, int):
-            raise TypeError("basset_id needs to be an integer")
+        if isinstance(basisset, int):
+            basset_id = basisset
+        elif isinstance(basisset, dict):
+            if "id" not in basisset:
+                raise ValueError("Passed dict is not a basis set dict as returned "
+                                 "by lookup_basis_functions")
+            basset_id = basisset["id"]
+        else:
+            raise TypeError("basset_id needs to be an integer or a dict")
 
         with self.conn:
             cur = self.conn.cursor()
@@ -401,6 +417,10 @@ class Database:
             ret = self.__ditcify_basisset_query_result(cur.fetchall())
             assert len(ret) == 1
             return ret[0]
+
+    def lookup_basisset_full(self, basset_id):
+        raise NotImplementedError("Not implemented in the basic database. "
+                                  "Use api.Database object for this purpose.")
 
     def search_basisset(self, name=None, description=None, ignore_case=False,
                         has_atnums=[], source=None, regex=False, pattern=None):
@@ -425,7 +445,7 @@ class Database:
                      to be interpreted as regular exrpessions
 
         Returns a list of dicts with content id, name, description,
-        source and extra and their respective atoms.
+        source, extra and their respective atoms.
         """
         if name is not None and not isinstance(name, str):
             raise TypeError("name needs to be None or a string")

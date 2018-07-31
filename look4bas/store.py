@@ -13,7 +13,7 @@ formats = {
 
 def normalise_name(name):
     """Normalise a basis set name to yield a valid filename"""
-    return "".join(["I" if c == "/" else c for c in name.lower()])
+    return name.lower().replace("/", "I").replace(" ", "_")
 
 
 def save_basisset(bset, fmts, destination="."):
@@ -32,6 +32,6 @@ def save_basisset(bset, fmts, destination="."):
         if os.path.exists(path):
             print("   Warn: Skipping " + path + " since file already exists")
         else:
-            print("   ", bset["name"], " to ", path)
+            print("   Saving to ", path)
             with open(path, "w") as f:
                 f.write(data)
