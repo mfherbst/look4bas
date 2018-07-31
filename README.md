@@ -48,6 +48,13 @@ This is only done if the user uses the flag ``--download``, see below.
 - For more info about the commandline flags ``look4bas`` understands,
   see the output of ``look4bas -h``
 
+## Installation
+Either you clone the repo and make sure you have the appropriate dependencies
+installed (see next section), or you just use `pip`:
+```
+pip install look4bas
+```
+
 ## Requirements and Python dependencies
 - Python >= 3.4
 - argparse
