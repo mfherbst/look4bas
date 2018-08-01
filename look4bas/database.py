@@ -478,6 +478,7 @@ class Database:
                   "AtomPerBasis.AtNum, AtomPerBasis.HasFunctions " +
                   "FROM BasisSet LEFT JOIN AtomPerBasis " +
                   "ON AtomPerBasis.BasisSetID = BasisSet.Id ")
+        postfix = " ORDER BY BasisSet.Name ASC"
         wheres = []
         args = []
 
@@ -507,9 +508,9 @@ class Database:
                 args.append(atnum)
 
         if wheres:
-            query = prefix + " WHERE " + " AND ".join(wheres)
+            query = prefix + " WHERE " + " AND ".join(wheres) + postfix
         else:
-            query = prefix
+            query = prefix + postfix
 
         with self.conn:
             cur = self.conn.cursor()
