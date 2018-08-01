@@ -44,6 +44,9 @@ def add_cmd_args_to(parser):
                          "should match.")
     filters.add_argument("--ignore-case", "-i", action="store_true", dest="ignorecase",
                          help="Ignore case when matching patterns")
+    filters.add_argument("--sources", nargs="+",
+                         help="List of sources to consider, default: all",
+                         default=look4bas.available_sources)
 
     #
     # Formatting options
@@ -80,7 +83,7 @@ def cmd_post_parsing_cleanup(args):
         )
 
 
-def lookup_basissets(db, args):
+def search_basissets(db, args):
     kwargs = {"regex": True, "ignore_case": bool(args.ignorecase), }
 
     # Build filters
@@ -93,6 +96,8 @@ def lookup_basissets(db, args):
     if args.pattern:
         # Matches if name *or* description is matched
         kwargs["pattern"] = args.pattern
+    if args.sources:
+        kwargs["sources"] = args.sources
     return db.search_basisset(**kwargs)
 
 
@@ -154,10 +159,10 @@ def main():
 
     # Setup database:
     db = look4bas.Database(args.dbfile)
-    look4bas.update_database(db)
+    db.update()
 
     # Search for basis sets
-    findings = lookup_basissets(db, args)
+    findings = search_basissets(db, args)
     if not findings:
         raise SystemExit("No basis set matched your search")
 

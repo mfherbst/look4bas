@@ -423,7 +423,7 @@ class Database:
                                   "Use api.Database object for this purpose.")
 
     def search_basisset(self, name=None, description=None, ignore_case=False,
-                        has_atnums=[], source=None, regex=False, pattern=None):
+                        has_atnums=[], sources=[], regex=False, pattern=None):
         """
         Function to filter basis sets. If no arguments are provided,
         all registered basis sets will be returned.
@@ -437,7 +437,7 @@ class Database:
                      against either these fields.
         has_atnums   Atoms to be contained in this basis set
                      Should be a list of atomic numbers.
-        source       The source of the basis set. Is matched exactly.
+        sources      The sources to take into account. Are matched exactly.
         ignore_case  Regular expression and string matchings
                      in name, pattern and description are done ignoring case.
         regex        Are the strings supplied to name, descriptions
@@ -453,10 +453,10 @@ class Database:
             raise TypeError("descrption needs to be None or a string")
         if pattern is not None and not isinstance(pattern, str):
             raise TypeError("pattern needs to be None or a string")
-        if source is not None and not isinstance(source, str):
-            raise TypeError("source needs to be None or a string")
+        if not isinstance(sources, list):
+            raise TypeError("source needs to be a list")
         if not isinstance(has_atnums, list):
-            raise TypeError("has_atnums needs to be alist")
+            raise TypeError("has_atnums needs to be a list")
 
         if regex:
             if ignore_case:
@@ -493,9 +493,10 @@ class Database:
             wheres.append(q)
             args.append(pattern)
             args.append(pattern)
-        if source:
-            wheres.append("Source = ?")
-            args.append(source)
+        if sources:
+            q = "( " + " OR ".join(len(sources) * ["Source = ?"]) + " )"
+            wheres.append(q)
+            args.extend(sources)
         if has_atnums:
             for atnum in has_atnums:
                 wheres.append(
