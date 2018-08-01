@@ -6,3 +6,4 @@ list_formats = {
     "default": ["crop", "noelements", "colour"],
     "extra":   ["crop", "elements", "colour"]
 }
+source_to_colour = {"ccrepo":"cyan", "EMSL": "yellow"}

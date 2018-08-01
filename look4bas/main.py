@@ -121,7 +121,8 @@ def display_results(args, findings):
         list_format.extend(args.format)
     display_args.update(display.parse_list_format(list_format))
 
-    display.print_basissets(findings, **display_args)
+    display.print_basissets(findings, **display_args,
+                            source_to_colour=config.source_to_colour)
 
 
 def download_results(args, db, findings):

@@ -42,6 +42,9 @@ available_display_formats = [f for b in __display_formats_base for f in ("no-" +
 colours_ANSI = {
     "yellow": '\033[93m',
     "white": '\033[0m',
+    "green": '\033[92m',
+    "red": '\033[91m',
+    "cyan": '\033[96m',
 }
 
 
@@ -74,11 +77,10 @@ def print_basissets(findings, highlight_atnums=[],
                         to an appropriate colour
     """
     # Colours used for display
-    creset = celem = cbas = ""
+    creset = celem = ""
     if colour:
         creset = colours_ANSI["white"]
         celem = colours_ANSI["yellow"]
-        cbas = colours_ANSI["yellow"]
 
     # Get IUPAC element list
     elem_list = iupac_list()
@@ -122,7 +124,7 @@ def print_basissets(findings, highlight_atnums=[],
             maxlen_elem = 0
 
     # Build format string:
-    fstr = cbas + "{name:" + str(maxlen_name) + "s}" + creset
+    fstr = "{bcolor}{name:" + str(maxlen_name) + "s}" + creset
     fstr += "  {description:" + str(maxlen_descr) + "s}"
     if elements:
         fstr += "  {elements:" + str(maxlen_elem) + "s}"
@@ -140,4 +142,8 @@ def print_basissets(findings, highlight_atnums=[],
                 elems = elems[:elems.rfind(",")]
                 elems += "..."
 
-        print(fstr.format(name=bset["name"], description=descr, elements=elems))
+        bcolor = ""
+        if source_to_colour and bset["source"] in source_to_colour:
+            bcolor = colours_ANSI[source_to_colour[bset["source"]]]
+        print(fstr.format(bcolor=bcolor, name=bset["name"],
+                          description=descr, elements=elems))
