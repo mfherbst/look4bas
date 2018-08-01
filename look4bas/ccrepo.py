@@ -69,7 +69,7 @@ def get_basis_g94(element, basis):
     returns a dict with
         reference     Reference to the basis set
         description   Basis set description
-        definiton     The basis set definition in Gaussian94 format
+        definition     The basis set definition in Gaussian94 format
     """
     sym = element["symbol"].lower()
     ele = element["name"]
@@ -219,7 +219,7 @@ def download_cgto_for_atoms(elem_list, bset_name, atnums, extra):
 
     ret = []
     for atnum in atnums:
-        basdef = get_basis_g94(elem_list[atnum], key)
+        basdef = get_basis_g94(elem_list[atnum], key)["definition"]
 
         # Parse obtained data and append to ret
         basparsed = gaussian94.loads(basdef)
