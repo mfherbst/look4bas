@@ -55,7 +55,7 @@ def add_cmd_args_to(parser):
     list_formats.add_argument("--extra", action="store_true",
                               help="Use the 'extra' format style when listing basis "
                               "sets. This is currently defined as '" +
-                              " ".join(config.list_formats["extra"]) + "'")
+                              " ".join(config.format_flags["extra"]) + "'")
     list_formats.add_argument("--format",
                               choices=display.available_display_formats, nargs="+",
                               metavar="flag",
@@ -82,6 +82,19 @@ def cmd_post_parsing_cleanup(args):
             if len(e) > 0
         )
 
+    # Build format list, by considering default and extra
+    # and extending further flags if the user wants this
+    if args.extra:
+        format_flags = config.format_flags["extra"]
+        args.extra = None  # Done with this flag
+    else:
+        format_flags = config.format_flags["default"]
+    if args.elements:
+        format_flags.append("elements")
+    if args.format is not None:
+        format_flags.extend(args.format)
+    args.format = display.parse_format_flags(format_flags)
+
 
 def search_basissets(db, args):
     kwargs = {"regex": True, "ignore_case": bool(args.ignorecase), }
@@ -101,30 +114,6 @@ def search_basissets(db, args):
     return db.search_basisset(**kwargs)
 
 
-def display_results(args, findings):
-    # display_args are the kwargs for the display function
-    # which will be called further below.
-    if args.elements:
-        display_args = {
-            "elements": True,
-            "highlight_atnums": list(args.elements),
-        }
-    else:
-        display_args = {}
-
-    # Build format list, by considering default and extra
-    # and extending further flags if the user wants this
-    list_format = config.list_formats["default"]
-    if args.extra:
-        list_format = config.list_formats["extra"]
-    if args.format is not None:
-        list_format.extend(args.format)
-    display_args.update(display.parse_list_format(list_format))
-
-    display.print_basissets(findings, **display_args,
-                            source_to_colour=config.source_to_colour)
-
-
 def download_results(args, db, findings):
     # Append at least the default format to download
     args.download.extend(config.default_download_formats)
@@ -141,7 +130,10 @@ def download_results(args, db, findings):
     for bset in findings:
         # TODO One could maybe use colour here as well with
         #      the colour scheme here and on display matching up
-        print("Obtaining {:50s} (from {})".format(bset["name"], bset["source"]))
+        source = display.colorise(bset["source"],
+                                  config.source_to_colour.get(bset["source"]),
+                                  **args.format)
+        print("Obtaining {:40s} (from {})".format(bset["name"], source))
         bset = db.lookup_basisset_full(bset)
         store.save_basisset(bset, args.download, args.destination)
 
@@ -172,7 +164,9 @@ def main():
     if args.download is not None:
         download_results(args, db, findings)
     else:
-        display_results(args, findings)
+        display.print_basissets(findings, **args.format,
+                                highlight_atnums=args.elements,
+                                source_to_colour=config.source_to_colour)
 
 
 if __name__ == "__main__":
