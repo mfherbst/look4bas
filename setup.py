@@ -16,7 +16,7 @@ setup(
     url='https://github.com/mfherbst/look4bas',
     author='Michael F. Herbst',
     author_email="info@michael-herbst.com",
-    license="GPL 3",
+    license="GPL v3",
     #
     packages=['look4bas'],
     scripts=["bin/look4bas"],

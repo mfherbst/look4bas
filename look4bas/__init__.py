@@ -5,6 +5,10 @@ import datetime
 import os
 
 __version__ = '0.1.2'
+__licence__ = "GPL v3"
+__authors__ = "Michael F. Herbsty"
+__email__ = "info@michael-herbst.com"
+
 __all__ = ["Database"]
 
 
