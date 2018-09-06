@@ -56,7 +56,7 @@ def __parse_element_block(block, elem_symbols_lower):
             raise ValueError("Expect number of contracted function (following AM letter) "
                              "to be an integer, not {}".format(n_contr))
 
-        if amstr == "sp":
+        if amstr == "SP":
             # This is a special case, where an s and p shell are defined
             # at the same time.
 
