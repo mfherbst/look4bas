@@ -41,21 +41,7 @@ class Database:
         """
         self.dbfile = dbfile
         self.conn = None
-
-        if not os.path.isfile(dbfile):
-            self.clear()
-        else:
-            conn = sqlite.connect(dbfile)
-
-            # Check version: version < DB_VERSION indicates an invalid db,
-            # that is too old or uninitialised and needs to be discarded
-            version = conn.execute("PRAGMA user_version").fetchone()[0]
-            if version is None or version < self.database_version:
-                # Delete current database and create a new one
-                self.clear()
-            else:
-                self.conn = conn
-                self.__register_user_functions()
+        self.connect(dbfile)
 
     def __register_user_functions(self):
         def matches(expr, item):
@@ -141,6 +127,34 @@ class Database:
         """
         self.conn.close()
         self.conn = None
+
+    def connect(self, dbfile=None):
+        """
+        Connect to a new database file and use it as the
+        underlying sqlite database. The old connection
+        will be closed first.
+        """
+        if dbfile is None:
+            dbfile = self.dbfile
+
+        if self.conn is not None:
+            self.close()
+        assert self.conn is None
+
+        if not os.path.isfile(dbfile):
+            self.clear()
+        else:
+            conn = sqlite.connect(dbfile)
+
+            # Check version: version < DB_VERSION indicates an invalid db,
+            # that is too old or uninitialised and needs to be discarded
+            version = conn.execute("PRAGMA user_version").fetchone()[0]
+            if version is None or version < self.database_version:
+                # Delete current database and create a new one
+                self.clear()
+            else:
+                self.conn = conn
+                self.__register_user_functions()
 
     def create_table_of_elements(self, source, elements):
         """

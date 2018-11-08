@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from . import database as dbcache
-from . import emsl, ccrepo, elements
+from . import emsl, ccrepo, elements, tlsutil
 import datetime
 import os
 
@@ -49,10 +49,12 @@ class Database(dbcache.Database):
             raise ValueError("Unknown basis set source: {}".format(basisset["source"]))
         return basisset
 
-    def update(self):
+    def update_from_source_sites(self):
         """
-        Update the database, i.e. check whether new records
-        exist online and update accordingly.
+        Update the database by scraping the source websites (i.e EMSL and ccrepo).
+
+        This takes longer than the default update function, but there is the
+        guarantee that the data is the uttermost recent.
         """
         # TODO poor mans solution for now ... update if older than 14 days.
         #
@@ -70,3 +72,36 @@ class Database(dbcache.Database):
                 "IUPAC",
                 [e for e in elements.iupac_list() if e["atnum"] > 0]
             )
+
+    def update(self):
+        """
+        Update the database, i.e. check whether a newer version
+        exists on get.michael-herbst.com/look4bas/basis_sets.db
+        and update accordingly.
+        """
+        archive_url = "https://get.michael-herbst.com/look4bas/basis_sets.db"
+
+        # TODO poor mans solution for now ... update if older than 14 days.
+        #
+        # Better: Check the most recent modification time for the EMSL and ccrepo
+        #         data and only update the respective sources if there are changes.
+        maxage = datetime.timedelta(days=14)
+
+        age = datetime.datetime.utcnow() - self.timestamp
+        if age > maxage or self.empty:
+            # Get the basis set database
+            ret = tlsutil.get_tls_fallback(archive_url)
+            if not ret.ok:
+                raise IOError("Error updating basis_set database from "
+                              "'{}'".format(archive_url))
+
+            # Close the database and overwrite the databasefile on disk
+            dbfile = self.dbfile
+            self.close()
+            os.remove(dbfile)
+
+            with open(dbfile, "wb") as f:
+                f.write(ret.content)
+
+            # Reconnect to the updated file
+            self.connect(dbfile)
