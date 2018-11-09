@@ -10,6 +10,13 @@ def add_cmd_args_to(parser):
     parser.add_argument("--dbfile", default=config.dbfile,
                         help="File where the database of basis set "
                         "information is cached.")
+    parser.add_argument("--dbsource", default="archive",
+                        help="The source from which the database should be "
+                        "updated. Default is 'archive', which is a built-in and "
+                        "officically supported archival location. 'direct' "
+                        "will update the database making http requests to EMSL "
+                        "and ccrepo. Alternatively a link may be supplied,"
+                        "from which the database is to be updated.")
     parser.add_argument("--destination", default=".", type=str, metavar="directory",
                         help="When downloading basis sets using --download store them in "
                         "this directory. (Default: '.', i.e. the current working "
@@ -152,7 +159,13 @@ def main():
 
     # Setup database:
     db = look4bas.Database(args.dbfile)
-    db.update()
+
+    if args.dbsource == "archive":
+        db.update()
+    elif args.dbsource == "direct":
+        db.update_from_source_sites()
+    else:
+        db.update(url=args.dbsource)
 
     # Search for basis sets
     findings = search_basissets(db, args)
