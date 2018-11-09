@@ -56,52 +56,51 @@ class Database(dbcache.Database):
         This takes longer than the default update function, but there is the
         guarantee that the data is the uttermost recent.
         """
-        # TODO poor mans solution for now ... update if older than 14 days.
-        #
-        # Better: Check the most recent modification time for the EMSL and ccrepo
-        #         data and only update the respective sources if there are changes.
-        maxage = datetime.timedelta(days=14)
+        # TODO: Check the most recent modification time for the EMSL and ccrepo
+        #       data and only update the respective sources if there are changes.
 
-        age = datetime.datetime.utcnow() - self.timestamp
-        if age > maxage or self.empty:
-            self.clear()
+        self.clear()
+        emsl.add_to_database(self)
+        ccrepo.add_to_database(self)
+        self.create_table_of_elements(
+            "IUPAC",
+            [e for e in elements.iupac_list() if e["atnum"] > 0]
+        )
 
-            emsl.add_to_database(self)
-            ccrepo.add_to_database(self)
-            self.create_table_of_elements(
-                "IUPAC",
-                [e for e in elements.iupac_list() if e["atnum"] > 0]
-            )
-
-    def update(self):
+    def update(self, url="https://get.michael-herbst.com/look4bas/basis_sets.db"):
         """
         Update the database, i.e. check whether a newer version
         exists on get.michael-herbst.com/look4bas/basis_sets.db
         and update accordingly.
         """
-        archive_url = "https://get.michael-herbst.com/look4bas/basis_sets.db"
-
-        # TODO poor mans solution for now ... update if older than 14 days.
-        #
-        # Better: Check the most recent modification time for the EMSL and ccrepo
-        #         data and only update the respective sources if there are changes.
-        maxage = datetime.timedelta(days=14)
-
+        # If last update was less than 2 days ago, do nothing
         age = datetime.datetime.utcnow() - self.timestamp
-        if age > maxage or self.empty:
-            # Get the basis set database
-            ret = tlsutil.get_tls_fallback(archive_url)
-            if not ret.ok:
-                raise IOError("Error updating basis_set database from "
-                              "'{}'".format(archive_url))
+        if age < datetime.timedelta(days=2):
+            return
 
+        # Else get the most recent database from the web
+        ret = tlsutil.get_tls_fallback(url)
+        if not ret.ok:
+            raise IOError("Error updating basis_set database from "
+                          "'{}'".format(url))
+        if "Last-Modified" in ret.headers:
+            try:
+                lastmodified = None
+                lastmodified = datetime.datetime.strptime(ret.headers["Last-Modified"],
+                                                          "%a, %d %b %Y %H:%M:%S %Z")
+            except ValueError as e:
+                raise ValueError("Error parsing last modified date from '{}': \n{}"
+                                 "".format(url, str(e)))
+
+        # Perform update only if local version is older
+        if self.timestamp < lastmodified:
             # Close the database and overwrite the databasefile on disk
-            dbfile = self.dbfile
             self.close()
-            os.remove(dbfile)
+            if os.path.exists(self.dbfile):
+                os.remove(self.dbfile)
 
-            with open(dbfile, "wb") as f:
+            with open(self.dbfile, "wb") as f:
                 f.write(ret.content)
 
             # Reconnect to the updated file
-            self.connect(dbfile)
+            self.connect(self.dbfile)
