@@ -150,7 +150,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="Commandline tool to search and download Gaussian basis sets. "
         "The tool downloads (and caches) the list of basis sets from the emsl basis set "
-        "exchange (https://bse.pnl.gov/bse/portal) for offline search and allows to "
+        "exchange (https://bse.pnl.gov/bse/portal) and/or the ccrepo "
+        "(https://grant-hill.group.shef.ac.uk/ccrepo/) "
+        "for offline search and allows to "
         "easily download individual basis sets from it.",
     )
     add_cmd_args_to(parser)
