@@ -7,10 +7,10 @@ import look4bas
 
 
 def add_cmd_args_to(parser):
-    parser.add_argument("--dbfile", default=config.dbfile,
+    parser.add_argument("--dbfile", default=config.dbfile, metavar="sqlitedb",
                         help="File where the database of basis set "
                         "information is cached.")
-    parser.add_argument("--dbsource", default="archive",
+    parser.add_argument("--dbsource", default="archive", metavar="source",
                         help="The source from which the database should be "
                         "updated. Default is 'archive', which is a built-in and "
                         "officically supported archival location. 'direct' "
