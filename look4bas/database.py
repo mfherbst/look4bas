@@ -39,7 +39,7 @@ class Database:
         """
         Initialise specifying database to work on
         """
-        self.dbfile = dbfile
+        self.dbfile = os.path.abspath(dbfile)
         self.conn = None
         self.connect(dbfile)
 
@@ -125,7 +125,8 @@ class Database:
         """
         Close the connection held by conn
         """
-        self.conn.close()
+        if self.conn:
+            self.conn.close()
         self.conn = None
 
     def connect(self, dbfile=None):
@@ -145,6 +146,7 @@ class Database:
             self.clear()
         else:
             conn = sqlite.connect(dbfile)
+            self.dbfile = os.path.abspath(dbfile)
 
             # Check version: version < DB_VERSION indicates an invalid db,
             # that is too old or uninitialised and needs to be discarded
