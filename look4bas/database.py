@@ -54,7 +54,7 @@ class Database:
 
     @property
     def timestamp(self):
-        if os.path.exists(self.dbfile):
+        if os.path.exists(self.dbfile) and not self.empty:
             return datetime.datetime.fromtimestamp(os.path.getmtime(self.dbfile))
         else:
             return datetime.datetime.fromtimestamp(0)

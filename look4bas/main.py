@@ -17,6 +17,9 @@ def add_cmd_args_to(parser):
                         "will update the database making http requests to EMSL "
                         "and ccrepo. Alternatively a link may be supplied,"
                         "from which the database is to be updated.")
+    parser.add_argument("--force-update", default=False, action="store_true",
+                        help="Force a database update by removing the old database"
+                        " and downloading a fresh one anew.")
     parser.add_argument("--destination", default=".", type=str, metavar="directory",
                         help="When downloading basis sets using --download store them in "
                         "this directory. (Default: '.', i.e. the current working "
@@ -162,12 +165,20 @@ def main():
     # Setup database:
     db = look4bas.Database(args.dbfile)
 
+    if args.force_update:
+        db.clear()
+
     if args.dbsource == "archive":
         db.update()
     elif args.dbsource == "direct":
         db.update_from_source_sites()
     else:
         db.update(url=args.dbsource)
+
+    if db.empty:
+        raise SystemExit("The database seems to be empty. "
+                         "This could indicate that an update failed. "
+                         "Try running 'look4bas --force-update'.")
 
     # Search for basis sets
     findings = search_basissets(db, args)
