@@ -1,0 +1,32 @@
+language: python
+cache: pip
+python:
+  - "3.5"
+  - "3.6"
+
+branches:
+  only:
+    # Only build master and version tags
+    - master
+    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
+
+install:
+  - travis_retry pip install -r requirements.txt
+  - travis_retry pip install flake8 pylint pytest
+
+script:  # This is the 'test' build stage
+  - pytest
+
+# These jobes are only run with the first python version
+# mentioned in the initial list
+# jobs:
+#   include:
+#     - stage: code style
+#       script: pylint look4bas
+#       env: CODE_STYLE="pylint"
+#     - script: flake8
+#       env: CODE_STYLE="flake8"
+#
+# stages:
+#   - code style
+#   - test
