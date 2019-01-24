@@ -56,9 +56,6 @@ class Database(dbcache.Database):
         This takes longer than the default update function, but there is the
         guarantee that the data is the uttermost recent.
         """
-        # TODO: Check the most recent modification time for the EMSL and ccrepo
-        #       data and only update the respective sources if there are changes.
-
         self.clear()
         emsl.add_to_database(self)
         ccrepo.add_to_database(self)
@@ -85,7 +82,6 @@ class Database(dbcache.Database):
                           "'{}'".format(url))
         if "Last-Modified" in ret.headers:
             try:
-                lastmodified = None
                 lastmodified = datetime.datetime.strptime(ret.headers["Last-Modified"],
                                                           "%a, %d %b %Y %H:%M:%S %Z")
             except ValueError as e:
