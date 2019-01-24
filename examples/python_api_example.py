@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import look4bas
+import json
 
 # Search for a basis set which has helium and beryllium
 # and which matches the regular expression '^cc-pv.z'
@@ -33,4 +34,4 @@ symbol_map = {element_list[atnum]["symbol"]: functions
 
 # Print basis set for the helium atom
 print("Basis definition for helium:")
-print(symbol_map["He"])
+print(json.dumps(symbol_map["He"], indent=2, sort_keys=True))
