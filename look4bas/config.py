@@ -6,4 +6,4 @@ format_flags = {
     "default": ["crop", "no-elements", "colour"],
     "extra":   ["crop", "elements", "colour"]
 }
-source_to_colour = {"ccrepo":"cyan", "EMSL": "yellow"}
+source_to_colour = {"ccrepo": "cyan", "EMSL": "yellow"}

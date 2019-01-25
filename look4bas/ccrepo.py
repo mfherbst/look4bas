@@ -137,8 +137,8 @@ def get_basis_sets_for_elem(element):
     page = base_url + "/" + element["name"] + "/index.html"
     ret = tlsutil.get_tls_fallback(page)
     if not ret.ok:
-        raise CcrepoError("Error downloading list of elements from: " +
-                          element["name"] + "/index.html")
+        raise CcrepoError("Error downloading list of elements from: "
+                          + element["name"] + "/index.html")
     soup = BeautifulSoup(ret.text, "lxml")
 
     opt = soup.find_all(id="basis")

@@ -73,8 +73,8 @@ def _parse_basis_line(line):
     splitted = [m[1:-1] for m in re.findall('"[^"]*"', line)]
 
     if len(splitted) != 11:
-        raise ValueError("Invalid emsl basis line: " + line +
-                         ", error: More params than expected.")
+        raise ValueError("Invalid emsl basis line: " + line
+                         + ", error: More params than expected.")
 
     try:
         elems = _parse_list(splitted[3])
@@ -114,13 +114,13 @@ def download_basisset_list(return_elements=False):
     basis_sets = []  # The basis set list to return
 
     # Search expression for script tags which define basisSet objects
-    re_bassets = re.compile("basisSets\[[0-9]+\]\W*=")
+    re_bassets = re.compile(r"basisSets\[[0-9]+\]\W*=")
 
     # Search expression for the basisSet definition lines:
-    re_basdef = re.compile("^\W*basisSets\[[0-9]+\]\W*=\W*new\W*basisSet")
+    re_basdef = re.compile(r"^\W*basisSets\[[0-9]+\]\W*=\W*new\W*basisSet")
 
     # Search expression for the number of basis sets expected
-    re_num = re.compile("numBasis\W*=\W*([0-9]+)")
+    re_num = re.compile(r"numBasis\W*=\W*([0-9]+)")
 
     # Seek through all script blocks, which contain basis definitions:
     for script in soup.find_all("script"):
@@ -248,8 +248,8 @@ def download_cgto_for_atoms(elem_list, bset_name, atnums, extra):
     if soup.pre is None:
         raise EmslError("No pre in result from emsl for basis set name " + bset_name)
     if "$bsdata" in soup.pre.text:
-        raise EmslError("Only found dummy content in pre element for basis set name " +
-                        bset_name)
+        raise EmslError("Only found dummy content in pre element for basis set name "
+                        + bset_name)
 
     ret = gaussian94.loads(soup.pre.text, elem_list=elem_list)
     if len(ret) < 1:

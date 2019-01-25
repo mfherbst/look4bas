@@ -246,8 +246,8 @@ class Database:
             if res is None:
                 raise ValueError("Unknown source {}".format(source))
 
-            cur.execute("SELECT AtNum, Symbol, Name FROM " + tablename +
-                        " ORDER BY AtNum ASC")
+            cur.execute("SELECT AtNum, Symbol, Name FROM " + tablename
+                        + " ORDER BY AtNum ASC")
             ret = [{"atnum": 0, "symbol": "X", "name": "dummy"}]
             for atnum, symbol, name in cur.fetchall():
                 ret.append({"atnum": atnum, "name": name,
@@ -424,11 +424,11 @@ class Database:
         with self.conn:
             cur = self.conn.cursor()
 
-            cur.execute("SELECT BasisSet.Id, BasisSet.Name, BasisSet.Description, " +
-                        "BasisSet.Source, BasisSet.Extra, AtomPerBasis.Id, " +
-                        "AtomPerBasis.AtNum, AtomPerBasis.HasFunctions " +
-                        "FROM BasisSet LEFT JOIN AtomPerBasis " +
-                        "ON AtomPerBasis.BasisSetID = BasisSet.Id " +
+            cur.execute("SELECT BasisSet.Id, BasisSet.Name, BasisSet.Description, "
+                        "BasisSet.Source, BasisSet.Extra, AtomPerBasis.Id, "
+                        "AtomPerBasis.AtNum, AtomPerBasis.HasFunctions "
+                        "FROM BasisSet LEFT JOIN AtomPerBasis "
+                        "ON AtomPerBasis.BasisSetID = BasisSet.Id "
                         "WHERE BasisSet.Id = ?", (str(basset_id),))
             ret = self.__ditcify_basisset_query_result(cur.fetchall())
             assert len(ret) == 1
@@ -489,10 +489,10 @@ class Database:
                 def match_field(field):
                     return "instr(" + field + ", ?)"
 
-        prefix = ("SELECT BasisSet.Id, BasisSet.Name, BasisSet.Description, " +
-                  "BasisSet.Source, BasisSet.Extra, AtomPerBasis.Id, " +
-                  "AtomPerBasis.AtNum, AtomPerBasis.HasFunctions " +
-                  "FROM BasisSet LEFT JOIN AtomPerBasis " +
+        prefix = ("SELECT BasisSet.Id, BasisSet.Name, BasisSet.Description, "
+                  "BasisSet.Source, BasisSet.Extra, AtomPerBasis.Id, "
+                  "AtomPerBasis.AtNum, AtomPerBasis.HasFunctions "
+                  "FROM BasisSet LEFT JOIN AtomPerBasis "
                   "ON AtomPerBasis.BasisSetID = BasisSet.Id ")
         postfix = " ORDER BY BasisSet.Name ASC"
         wheres = []

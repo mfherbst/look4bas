@@ -31,7 +31,7 @@ def add_cmd_args_to(parser):
     mode.add_argument("--download", nargs="*", metavar='format',
                       choices=store.formats,
                       help="Download the matching basis sets in the requested formats "
-                      "(Default: " + " ".join(config.default_download_formats) + ") " +
+                      "(Default: " + " ".join(config.default_download_formats) + ") "
                       "to the directory specified by --destination. ")
 
     #
@@ -56,7 +56,8 @@ def add_cmd_args_to(parser):
                          help="Ignore case when matching patterns")
     filters.add_argument("--sources", nargs="+",
                          help="List of sources to consider, default: all",
-                         default=look4bas.available_sources)
+                         default=look4bas.available_sources,
+                         choices=look4bas.available_sources)
 
     #
     # Formatting options
@@ -64,7 +65,7 @@ def add_cmd_args_to(parser):
     list_formats = parser.add_argument_group("Formatting options")
     list_formats.add_argument("--extra", action="store_true",
                               help="Use the 'extra' format style when listing basis "
-                              "sets. This is currently defined as '" +
+                              "sets. This is currently defined as '"
                               " ".join(config.format_flags["extra"]) + "'")
     list_formats.add_argument("--format",
                               choices=display.available_display_formats, nargs="+",
@@ -193,7 +194,3 @@ def main():
         display.print_basissets(findings, **args.format,
                                 highlight_atnums=args.elements,
                                 source_to_colour=config.source_to_colour)
-
-
-if __name__ == "__main__":
-    main()

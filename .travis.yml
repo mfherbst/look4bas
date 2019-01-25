@@ -19,14 +19,14 @@ script:  # This is the 'test' build stage
 
 # These jobes are only run with the first python version
 # mentioned in the initial list
-# jobs:
-#   include:
+jobs:
+  include:
 #     - stage: code style
 #       script: pylint look4bas
 #       env: CODE_STYLE="pylint"
-#     - script: flake8
-#       env: CODE_STYLE="flake8"
-#
-# stages:
-#   - code style
-#   - test
+    - script: flake8
+      env: CODE_STYLE="flake8"
+
+stages:
+  - code style
+  - test
