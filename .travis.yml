@@ -21,11 +21,13 @@ script:  # This is the 'test' build stage
 # mentioned in the initial list
 jobs:
   include:
-#     - stage: code style
-#       script: pylint look4bas
-#       env: CODE_STYLE="pylint"
+    - stage: code style
+      script: pylint bin look4bas
+      env: CODE_STYLE="pylint"
     - script: flake8
       env: CODE_STYLE="flake8"
+  allow_failures:
+    - env: CODE_STYLE="pylint"
 
 stages:
   - code style
