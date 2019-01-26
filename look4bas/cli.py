@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+"""Command-line interface functions. Use main() to kick of look4bas CLI"""
+
 
 import argparse
 from look4bas import display, store, config, elements
@@ -7,6 +9,10 @@ import look4bas
 
 
 def add_cmd_args_to(parser):
+    """
+    Add commandline arguments of the CLI to an argparse parser object
+    """
+
     parser.add_argument("--dbfile", default=config.dbfile, metavar="sqlitedb",
                         help="File where the database of basis set "
                         "information is cached.")
@@ -76,6 +82,11 @@ def add_cmd_args_to(parser):
 
 
 def cmd_post_parsing_cleanup(args):
+    """
+    Take a parsed arguments object and do some extra consistency checks
+    as well as default cleanup of entries.
+    """
+
     # TODO Ideally this should be directly integrated into the
     #      parsing done by argparse ... but I cannot be bothered right now.
 
@@ -107,7 +118,11 @@ def cmd_post_parsing_cleanup(args):
     args.format = display.parse_format_flags(format_flags)
 
 
-def search_basissets(db, args):
+def search_basissets(data_base, args):
+    """
+    Take the args object and accordingly search for a basis
+    set in the database
+    """
     kwargs = {"regex": True, "ignore_case": bool(args.ignorecase), }
 
     # Build filters
@@ -122,10 +137,13 @@ def search_basissets(db, args):
         kwargs["pattern"] = args.pattern
     if args.sources:
         kwargs["sources"] = args.sources
-    return db.search_basisset(**kwargs)
+    return data_base.search_basisset(**kwargs)
 
 
-def download_results(args, db, findings):
+def download_results(args, data_base, findings):
+    """
+    Download all findings into the current working directory.
+    """
     # Append at least the default format to download
     args.download.extend(config.default_download_formats)
 
@@ -145,11 +163,15 @@ def download_results(args, db, findings):
                                   config.source_to_colour.get(bset["source"]),
                                   **args.format)
         print("Obtaining {:40s} (from {})".format(bset["name"], source))
-        bset = db.lookup_basisset_full(bset)
+        bset = data_base.lookup_basisset_full(bset)
         store.save_basisset(bset, args.download, args.destination)
 
 
 def main():
+    """
+    Main function to start the CLI
+    """
+
     # Parse the commandline arguments
     parser = argparse.ArgumentParser(
         description="Commandline tool to search and download Gaussian basis sets. "
@@ -164,32 +186,32 @@ def main():
     cmd_post_parsing_cleanup(args)
 
     # Setup database:
-    db = look4bas.Database(args.dbfile)
+    data_base = look4bas.Database(args.dbfile)
 
     if args.force_update:
-        db.clear()
+        data_base.clear()
 
     if args.dbsource == "archive":
-        db.update()
+        data_base.update()
     elif args.dbsource == "direct":
-        db.update_from_source_sites()
+        data_base.update_from_source_sites()
     else:
-        db.update(url=args.dbsource)
+        data_base.update(url=args.dbsource)
 
-    if db.empty:
+    if data_base.empty:
         raise SystemExit("The database seems to be empty. "
                          "This could indicate that an update failed. "
                          "Try running 'look4bas --force-update'.")
 
     # Search for basis sets
-    findings = search_basissets(db, args)
+    findings = search_basissets(data_base, args)
     if not findings:
         raise SystemExit("No basis set matched your search")
 
     # Since args.download may be absent or present, but without a value,
     # we cannot plainly use 'if args.download' here.
     if args.download is not None:
-        download_results(args, db, findings)
+        download_results(args, data_base, findings)
     else:
         display.print_basissets(findings, **args.format,
                                 highlight_atnums=args.elements,
