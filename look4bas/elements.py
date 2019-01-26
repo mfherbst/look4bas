@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+# flake8: noqa
+# pylint: disable=bad-continuation,bad-whitespace
+
+"""
+This module contains a parsable list of all elements of the periodic table,
+adhering to the IUPAC naming convention.
+"""
+
 import collections
 
 
