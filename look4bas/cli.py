@@ -144,8 +144,9 @@ def download_results(args, data_base, findings):
     """
     Download all findings into the current working directory.
     """
-    # Append at least the default format to download
-    args.download.extend(config.default_download_formats)
+    if len(args.download) == 0:
+        # Append at least the default format to download
+        args.download.extend(config.default_download_formats)
 
     # TODO Later we probably want a more elaborate selection
     #      mechanism where one can select amongst the matches

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from . import gaussian94
+from . import gaussian94, orca
 import os
 
 """ Dictionary of the basis set formats supported by this script,
@@ -8,6 +8,7 @@ import os
 """
 formats = {
     "Gaussian94": "g94",
+    "Orca": "orca",
 }
 
 
@@ -21,13 +22,16 @@ def save_basisset(bset, fmts, destination="."):
     Save the provided basis set in the given formats
     to the provided destination directory.
     """
+    dump_function = {
+        "Gaussian94": gaussian94.dumps,
+        "Orca": orca.dumps,
+    }
 
     for fmt in fmts:
-        if fmt == "Gaussian94":
-            data = gaussian94.dumps(bset["atoms"])
-        else:
+        if fmt not in dump_function:
             raise NotImplementedError("Format {} not implemented.".format(fmt))
 
+        data = dump_function[fmt](bset["atoms"])
         path = destination + "/" + normalise_name(bset["name"]) + "." + formats[fmt]
         if os.path.exists(path):
             print("   Warn: Skipping " + path + " since file already exists")

@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 from . import elements
 from warnings import warn
-
-
-NUMBER_TO_AM = ["S", "P", "D", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O"]
+from .constants import NUMBER_TO_AM
 
 
 def __float_fortran(string):
@@ -339,7 +337,7 @@ def dumps(data, elem_list=elements.iupac_list()):
                 fmt = "{0:15.7f}             {1: #11.8G}"
                 lines.append(fmt.format(exp, coeff))
         if "ecp" in atom:
-            warn("look4bas.gaussian94.dumps currently ignores any ECP "
+            warn(dumps.__name__ + " currently ignores any ECP "
                  "definitions parsed.")
     lines.append("****\n")
 
