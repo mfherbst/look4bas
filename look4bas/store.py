@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from . import gaussian94, orca
+from . import gaussian94, orca, nwchem
 import os
 
 """ Dictionary of the basis set formats supported by this script,
@@ -9,6 +9,7 @@ import os
 formats = {
     "Gaussian94": "g94",
     "Orca": "orca",
+    "NWChem": "nwchem",
 }
 
 
@@ -25,6 +26,7 @@ def save_basisset(bset, fmts, destination="."):
     dump_function = {
         "Gaussian94": gaussian94.dumps,
         "Orca": orca.dumps,
+        "NWChem": nwchem.dumps,
     }
 
     for fmt in fmts:
