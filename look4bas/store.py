@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
-from . import gaussian94, orca, nwchem
+from . import gaussian94, orca, nwchem, qchem
 import os
 
 """ Dictionary of the basis set formats supported by this script,
     mapped to the default file extension used.
 """
 formats = {
-    "Gaussian94": "g94",
-    "Orca": "orca",
-    "NWChem": "nwchem",
+    "gaussian94": "g94",
+    "orca": "orca",
+    "nwchem": "nwchem",
+    "qchem": "qchem",
 }
 
 
@@ -24,9 +25,10 @@ def save_basisset(bset, fmts, destination="."):
     to the provided destination directory.
     """
     dump_function = {
-        "Gaussian94": gaussian94.dumps,
-        "Orca": orca.dumps,
-        "NWChem": nwchem.dumps,
+        "gaussian94": gaussian94.dumps,
+        "orca": orca.dumps,
+        "nwchem": nwchem.dumps,
+        "qchem": qchem.dumps,
     }
 
     for fmt in fmts:
