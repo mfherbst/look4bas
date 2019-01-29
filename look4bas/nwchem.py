@@ -39,9 +39,12 @@ def dumps(data, elem_list=elements.iupac_list()):
                 exp = fun["exponents"][i]
                 fmt = "    {0:15.7f}    {1: #11.9G}"
                 lines.append(fmt.format(exp, coeff))
+    lines.append("end")
+
+    for atom in data:
         if "ecp" in atom:
             warn(dumps.__name__ + " currently ignores any ECP "
-                 "definitions.")
-    lines.append("end")
+                 "definitions parsed.")
+            break
 
     return "\n".join(lines)
