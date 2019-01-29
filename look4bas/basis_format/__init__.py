@@ -7,6 +7,7 @@ extension = {
     "nwchem": "nwchem",
     "orca": "orca",
     "qchem": "qchem",
+    "turbomole": "turbomole",
 }
 
 
@@ -21,7 +22,7 @@ def dumps(format, data):
     and dump a string representing this basis set definition
     in the specified format.
     """
-    from . import cfour, gaussian94, nwchem, orca, qchem
+    from . import cfour, gaussian94, nwchem, orca, qchem, turbomole
 
     dumps = {
         "cfour": cfour.dumps,
@@ -29,6 +30,7 @@ def dumps(format, data):
         "nwchem": nwchem.dumps,
         "orca": orca.dumps,
         "qchem": qchem.dumps,
+        "turbomole": turbomole.dumps,
     }
 
     if format not in dumps:
