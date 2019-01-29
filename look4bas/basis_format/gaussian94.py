@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from . import elements
+from .. import elements
 from warnings import warn
 from .constants import NUMBER_TO_AM
 

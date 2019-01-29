@@ -4,7 +4,7 @@
 
 
 import argparse
-from look4bas import display, store, config, elements
+from look4bas import display, store, config, elements, basis_format
 import look4bas
 
 
@@ -35,7 +35,7 @@ def add_cmd_args_to(parser):
     mode.add_argument("--list", action='store_true', help="List the matching basis "
                       "sets (Default)")
     mode.add_argument("--download", nargs="*", metavar='format',
-                      choices=store.formats,
+                      choices=basis_format.extension,
                       help="Download the matching basis sets in the requested formats "
                       "(Default: " + " ".join(config.default_download_formats) + ") "
                       "to the directory specified by --destination. ")

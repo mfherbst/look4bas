@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from . import elements
+from .. import elements
 from .constants import NUMBER_TO_AM
 from warnings import warn
 
@@ -13,7 +13,7 @@ def dumps(data, elem_list=elements.iupac_list()):
             coefficients      List of contraction coefficients
             exponents         List of contraction exponents
     and dump a string representing this basis set definition
-    in Gaussian94 format.
+    in Q-Chem format.
 
     Note, that as of now potential ECP data present in the basis
     is ignored.

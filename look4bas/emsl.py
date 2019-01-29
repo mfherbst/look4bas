@@ -2,7 +2,8 @@
 
 from bs4 import BeautifulSoup
 import re
-from . import tlsutil, gaussian94
+from . import tlsutil
+from .basis_format import gaussian94
 import json
 
 
