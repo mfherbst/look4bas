@@ -113,6 +113,48 @@ print("Basis definition for helium:")
 print(json.dumps(symbol_map["He"], indent=2, sort_keys=True))
 ```
 
+## Using look4bas with ...
+This section contains some hints how to use `look4bas` specifically
+in combination with a few quantum-chemistry programs. If you use it
+with other codes and feel some explanation for that is missing,
+feel free to extend it here with a PR.
+
+### CFOUR
+```
+TODO
+```
+
+### Gaussian
+```
+TODO
+```
+
+
+### NWChem
+```
+TODO
+```
+
+### ORCA
+```
+TODO
+```
+
+### pyscf
+```
+TODO
+```
+
+### Q-Chem
+```
+TODO
+```
+
+### Turbomole
+```
+TODO
+```
+
 ## Citing
 If you use the script and find it useful, please cite this software:
 [![DOI](https://zenodo.org/badge/89177225.svg)](https://zenodo.org/badge/latestdoi/89177225)
