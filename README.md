@@ -68,6 +68,7 @@ pip install look4bas
 - [requests](https://pypi.python.org/pypi/requests) >= 2.2
 - shutil
 
+
 ## Python API
 Searching for basis sets can be accomplished directly via a `python` API as well,
 which will return the search results in dictionaries.
@@ -75,6 +76,7 @@ An example can be found below, which is also available in the example file
 [`examples/python_api_example.py`](examples/python_api_example.py).
 ```python
 import look4bas
+import json
 
 # Search for a basis set which has helium and beryllium
 # and which matches the regular expression '^cc-pv.z'
@@ -108,7 +110,7 @@ symbol_map = {element_list[atnum]["symbol"]: functions
 
 # Print basis set for the helium atom
 print("Basis definition for helium:")
-print(symbol_map["He"])
+print(json.dumps(symbol_map["He"], indent=2, sort_keys=True))
 ```
 
 ## Citing

@@ -22,7 +22,7 @@ def dumps(format, data):
     and dump a string representing this basis set definition
     in the specified format.
     """
-    from . import cfour, gaussian94, nwchem, orca, qchem, turbomole
+    from . import cfour, gaussian94, nwchem, orca, pyscf, qchem, turbomole
 
     dumps = {
         "cfour": cfour.dumps,
@@ -31,6 +31,7 @@ def dumps(format, data):
         "orca": orca.dumps,
         "qchem": qchem.dumps,
         "turbomole": turbomole.dumps,
+        "pyscf": pyscf.dumps,
     }
 
     if format not in dumps:
