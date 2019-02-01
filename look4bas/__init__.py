@@ -4,7 +4,7 @@ from . import emsl, ccrepo, elements, tlsutil
 import datetime
 import os
 
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 __licence__ = "GPL v3"
 __authors__ = "Michael F. Herbsty"
 __email__ = "info@michael-herbst.com"
