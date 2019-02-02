@@ -84,9 +84,9 @@ with other codes or feel some explanation is missing,
 feel free to extend it here with a PR.
 
 ### CFOUR
-```
-TODO
-```
+The CFOUR format is implemented, but not properly tested
+so far. Feel free to use it and please get in touch if you encounter
+problems.
 
 ### Gaussian
 ```
@@ -144,11 +144,10 @@ with the downloaded basis by issuing
 cat water_skel.qcin pc-2.bas > water.qcin
 ```
 
-
 ### Turbomole
-```
-TODO
-```
+The Turbomole format is implemented, but not properly tested
+so far. Feel free to use it and please get in touch if you encounter
+problems.
 
 
 ## Citing
