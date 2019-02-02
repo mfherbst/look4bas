@@ -56,7 +56,7 @@ def convert_to(package, data):
     """
     from . import pyscf
     convert = {
-        "pyscf": pyscf.convert,
+        "pyscf": pyscf.convert_to,
     }
     if package not in convert:
         raise NotImplementedError("convert_to for package '{}' is not implemented."

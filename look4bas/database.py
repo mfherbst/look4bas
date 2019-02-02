@@ -438,6 +438,8 @@ class Database:
         raise NotImplementedError("Not implemented in the basic database. "
                                   "Use look4bas.api.Database object for this purpose.")
 
+    # TODO Allow exact search for something like name as well
+    #      (i.e. no substring search)
     def search_basisset(self, name=None, description=None, ignore_case=False,
                         has_atnums=[], sources=[], regex=False, pattern=None):
         """

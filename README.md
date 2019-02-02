@@ -93,7 +93,6 @@ problems.
 TODO
 ```
 
-
 ### NWChem
 ```
 TODO
@@ -133,11 +132,38 @@ cat water_skel.in pc-2.orca water.in
 orca water.in | tee water.out
 ```
 
-
 ### pyscf
+For supplying basis information to pyscf,
+the python API is best used.
+The script [`examples/pyscf.py`](examples/pyscf.py),
+for example, performs the exemplary geometry optimisation of water,
+where the pc-2 basis is obtained using `look4bas`:
+```python
+#!/usr/bin/env python3
+
+import pyscf
+import pyscf.geomopt.berny_solver
+import look4bas
+import look4bas.basis_format
+
+# Search for basis set
+db = look4bas.Database()
+db.update()
+findings = db.search_basisset("^pc-2$", regex=True,
+                              has_atnums=[1, 8, 32])
+assert len(findings) == 1
+bset = db.lookup_basisset_full(findings[0])
+
+# Setup water HF geometry optimisation in pyscf
+mol = pyscf.gto.Mole()
+mol.atom = "H 1 0 0; H 0 1 0; O 0 0 0"
+mol.basis = look4bas.basis_format.convert_to("pyscf", bset["atoms"])
+mol.build()
+
+mf = pyscf.scf.RHF(mol)
+mol_eq = pyscf.geomopt.berny_solver.optimize(mf)
 ```
-TODO
-```
+
 
 ### Q-Chem
 `look4bas` directly downloads a basis set in the format expected

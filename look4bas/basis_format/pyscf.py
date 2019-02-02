@@ -3,9 +3,12 @@ from .. import elements
 from warnings import warn
 
 try:
-    from pyscf.gto.basis.parse_nwchem import optimize_contraction
+    from pyscf.gto.basis.parse_nwchem import optimize_contraction, remove_zeros
 except ImportError:
     def optimize_contraction(basis):
+        return basis
+
+    def remove_zeros(basis):
         return basis
 
 
@@ -50,15 +53,16 @@ def convert_to(data, elem_list=elements.IUPAC_LIST):
     Example:
 
     >>> from pyscf import gto
-    >>> from look4bas.basis_format.pyscf import convert
+    >>> from look4bas.basis_format.pyscf import convert_to
     >>>
     >>> mol = gto.Mole()
-    >>> mol.basis = convert(look4bas_data)
+    >>> mol.basis = convert_to(look4bas_data)
     """
-    warn("Converting to pyscf format is experimental.")
-
     ret = {}
     for atom in data:
+        symbol = elem_list[atom["atnum"]]["symbol"]
+
+        bdef = []
         for fun in sorted(atom["functions"],
                           key=lambda x: x["angular_momentum"]):
             data_symbol = [fun["angular_momentum"]]
@@ -68,14 +72,16 @@ def convert_to(data, elem_list=elements.IUPAC_LIST):
                                  "in contraction specification need to agree")
             for i, coeff in enumerate(fun["coefficients"]):
                 exp = fun["exponents"][i]
-                data_symbol.extend([exp, coeff])
+                data_symbol.append([exp, coeff])
+            bdef.append(data_symbol)
 
-        symbol = elem_list[atom["atnum"]]["symbol"]
-        ret[symbol] = data_symbol
+        bdef = optimize_contraction(bdef)
+        bdef = remove_zeros(bdef)
+        ret[symbol] = bdef
 
     for atom in data:
         if "ecp" in atom:
-            warn(dumps.__name__ + " currently ignores any ECP "
+            warn(convert_to.__name__ + " currently ignores any ECP "
                  "definitions parsed.")
             break
 
