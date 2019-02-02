@@ -100,9 +100,39 @@ TODO
 ```
 
 ### ORCA
+Here `look4bas` downloads the basis set in the format expected
+for a `%basis` block. By concatenation with a skeleton
+input file, which defines the rest of the calculation parameters,
+one can therefore quickly prepare an input file for
+[Orca](https://orcaforum.kofo.mpg.de/).
+
+For example, consider a water geometry optimisation using `pc-2`.
+
+1. Define a skeleton ORCA input file `water_skel.in`
 ```
-TODO
+! hf opt
+* xyz 0 1
+  H 1 0 0
+  H 0 1 0
+  O 0 0 0
+*
 ```
+
+2. Download the pc-2 basis with `look4bas`
+```
+look4bas "^pc-2$" --elem H O Fe --down orca
+```
+
+3. Create the actual input file
+```
+cat water_skel.in pc-2.orca water.in
+```
+
+4. Run ORCA
+```
+orca water.in | tee water.out
+```
+
 
 ### pyscf
 ```
@@ -111,15 +141,15 @@ TODO
 
 ### Q-Chem
 `look4bas` directly downloads a basis set in the format expected
-in a `$basis` section. Therefore one may simply concatenate a
+in a `$basis` section of a [Q-Chem](https://q-chem.com) input file.
+Therefore one may simply concatenate a
 basis set definition downloaded with `look4bas`
 with a skeleton input file, which configures the rest of the
 calculation.
 
-For example, consider the simple water geometry optimisation
-```bash
-cat water_skel.qcin
-```
+For example, we consider again a simple water geometry optimisation.
+
+1. We define a skeleton Q-Chem input file `water_skel.qcin`:
 ```
 $molecule
 0 1
@@ -134,12 +164,13 @@ $rem
     jobtype   opt
 $end
 ```
-where we downloaded the pc-2 basis set as such:
+2. We download, for example, the pc-2 basis with `look4bas`
 ```bash
-look4bas "^pc-2$" --down qchem
+look4bas "^pc-2$" --elem H O Fe --down qchem
 ```
-Then we can create a Q-Chem input file `water.qcin` of this job
-with the downloaded basis by issuing
+3. Finally the actual Q-Chem input file `water.qcin` of such a
+job, using exactly the downloaded basis, can be created
+just by:
 ```
 cat water_skel.qcin pc-2.bas > water.qcin
 ```
