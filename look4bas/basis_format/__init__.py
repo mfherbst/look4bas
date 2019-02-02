@@ -6,7 +6,7 @@ extension = {
     "gaussian94": "g94",
     "nwchem": "nwchem",
     "orca": "orca",
-    "qchem": "qchem",
+    "qchem": "bas",
     "turbomole": "turbomole",
 }
 

@@ -80,7 +80,7 @@ An example for such use can be found in
 ## Using look4bas with ...
 This section contains some hints how to use `look4bas` specifically
 in combination with a few quantum-chemistry programs. If you use it
-with other codes and feel some explanation for that is missing,
+with other codes or feel some explanation is missing,
 feel free to extend it here with a PR.
 
 ### CFOUR
@@ -110,9 +110,40 @@ TODO
 ```
 
 ### Q-Chem
+`look4bas` directly downloads a basis set in the format expected
+in a `$basis` section. Therefore one may simply concatenate a
+basis set definition downloaded with `look4bas`
+with a skeleton input file, which configures the rest of the
+calculation.
+
+For example, consider the simple water geometry optimisation
+```bash
+cat water_skel.qcin
 ```
-TODO
 ```
+$molecule
+0 1
+  H 1 0 0
+  H 0 1 0
+  O 0 0 0
+$end
+
+$rem
+    exchange  hf
+    basis     gen
+    jobtype   opt
+$end
+```
+where we downloaded the pc-2 basis set as such:
+```bash
+look4bas "^pc-2$" --down qchem
+```
+Then we can create a Q-Chem input file `water.qcin` of this job
+with the downloaded basis by issuing
+```
+cat water_skel.qcin pc-2.bas > water.qcin
+```
+
 
 ### Turbomole
 ```

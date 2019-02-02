@@ -18,8 +18,6 @@ def dumps(data, elem_list=elements.iupac_list(), **kwargs):
     Note, that as of now potential ECP data present in the basis
     is ignored.
     """
-    warn("Dumping basis sets in Q-Chem format is experimental.")
-
     first = True
     lines = []
     lines.append("$basis")
@@ -29,7 +27,7 @@ def dumps(data, elem_list=elements.iupac_list(), **kwargs):
         else:
             lines.append("****")
 
-        lines.append(elem_list[atom["atnum"]]["symbol"] + "     0")
+        lines.append("{:>2s}  0".format(elem_list[atom["atnum"]]["symbol"]))
         for fun in atom["functions"]:
             lfun = len(fun["coefficients"])
             if lfun != len(fun["exponents"]):
@@ -37,11 +35,11 @@ def dumps(data, elem_list=elements.iupac_list(), **kwargs):
                                  "in contraction specification need to agree.")
 
             am = NUMBER_TO_AM[fun["angular_momentum"]]
-            lines.append("{}   {}   1.00".format(am, lfun))
+            lines.append("{}{:4d}  1.00".format(am, lfun))
 
             for i, coeff in enumerate(fun["coefficients"]):
                 exp = fun["exponents"][i]
-                lines.append("{0:15.7f}             {1: #11.8G}".format(exp, coeff))
+                lines.append("{0:16.7f} {1: #16.8G}".format(exp, coeff))
     lines.append("$end")
 
     for atom in data:
