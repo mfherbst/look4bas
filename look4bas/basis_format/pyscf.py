@@ -37,7 +37,7 @@ def dumps(data, elem_list=elements.iupac_list()):
     return nwchem.dumps(data, elem_list)
 
 
-def convert(data, elem_list=elements.iupac_list()):
+def convert_to(data, elem_list=elements.iupac_list()):
     """
     Take a list of dicts containing the entries
         atnum:     atomic number

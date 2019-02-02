@@ -21,7 +21,7 @@ def dumps(data, elem_list=elements.iupac_list()):
     warn("Dumping basis sets in NWChem format is experimental.")
 
     lines = []
-    lines.append("basis \"ao basis\"")
+    lines.append("basis \"look4bas\"")
     for atom in data:
         elem = elem_list[atom["atnum"]]["symbol"]
         lines.append("# {}".format(elem_list[atom["atnum"]]["name"]))

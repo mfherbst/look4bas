@@ -2,7 +2,7 @@
     mapped to the default file extension used.
 """
 extension = {
-    "cfour": "cfour",
+    "cfour": "GENBAS",
     "gaussian94": "g94",
     "nwchem": "nwchem",
     "orca": "orca",
@@ -11,7 +11,7 @@ extension = {
 }
 
 
-def dumps(format, data):
+def dumps(format, data, name=None, description=None):
     """
     Take a list of dicts containing the entries
         atnum:     atomic number
@@ -21,6 +21,10 @@ def dumps(format, data):
             exponents         List of contraction exponents
     and dump a string representing this basis set definition
     in the specified format.
+
+    Optionally name and description of the basis set may be specified
+    as well. Not all basis set formats use this information in the
+    returned string, however.
     """
     from . import cfour, gaussian94, nwchem, orca, pyscf, qchem, turbomole
 
