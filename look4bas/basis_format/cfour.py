@@ -4,7 +4,7 @@ from warnings import warn
 import look4bas
 
 
-def dumps(data, elem_list=elements.iupac_list(), **kwargs):
+def dumps(data, elem_list=elements.IUPAC_LIST, **kwargs):
     """
     Take a list of dicts containing the entries
         atnum:     atomic number

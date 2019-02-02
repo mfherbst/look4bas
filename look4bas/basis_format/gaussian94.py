@@ -222,7 +222,7 @@ def __parse_ecp_section(ecp_block, elem_symbols_lower):
     return ret
 
 
-def loads(string, elem_list=elements.iupac_list()):
+def loads(string, elem_list=elements.IUPAC_LIST):
     """
     Parse a string, which represents a basis set file in g94
     format and return the defined basis functions
@@ -305,7 +305,7 @@ def loads(string, elem_list=elements.iupac_list()):
     return ret
 
 
-def dumps(data, elem_list=elements.iupac_list(), **kwargs):
+def dumps(data, elem_list=elements.IUPAC_LIST, **kwargs):
     """
     Take a list of dicts containing the entries
         atnum:     atomic number

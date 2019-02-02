@@ -92,8 +92,7 @@ def cmd_post_parsing_cleanup(args):
 
     # If filtering for elements is requested, transform elements
     # to atomic numbers
-    elem_list = elements.iupac_list()
-    elem_symbols_lower = [e["symbol"].lower() for e in elem_list]
+    elem_symbols_lower = [e["symbol"].lower() for e in elements.IUPAC_LIST]
 
     def to_atnum(sym):
         return elem_symbols_lower.index(sym.lower())

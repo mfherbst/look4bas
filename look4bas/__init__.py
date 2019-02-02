@@ -62,7 +62,7 @@ class Database(dbcache.Database):
         ccrepo.add_to_database(self)
         self.create_table_of_elements(
             "IUPAC",
-            [e for e in elements.iupac_list() if e["atnum"] > 0]
+            [e for e in elements.IUPAC_LIST if e["atnum"] > 0]
         )
 
     def update(self, url="https://get.michael-herbst.com/look4bas/basis_sets.db"):

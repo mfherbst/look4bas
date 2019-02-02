@@ -9,7 +9,7 @@ except ImportError:
         return basis
 
 
-def dumps(data, elem_list=elements.iupac_list(), **kwargs):
+def dumps(data, elem_list=elements.IUPAC_LIST, **kwargs):
     """
     Take a list of dicts containing the entries
         atnum:     atomic number
@@ -37,7 +37,7 @@ def dumps(data, elem_list=elements.iupac_list(), **kwargs):
     return nwchem.dumps(data, elem_list)
 
 
-def convert_to(data, elem_list=elements.iupac_list()):
+def convert_to(data, elem_list=elements.IUPAC_LIST):
     """
     Take a list of dicts containing the entries
         atnum:     atomic number
