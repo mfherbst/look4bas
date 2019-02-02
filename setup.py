@@ -22,7 +22,7 @@ setup(
     scripts=["bin/look4bas"],
     version='0.2.4',
     #
-    python_requires='>=3',
+    python_requires='>=3.5',
     install_requires=[
         'requests (>=2.2)',
         'beautifulsoup4 (>= 4.2)',
