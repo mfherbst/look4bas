@@ -4,20 +4,9 @@ import unittest
 import re
 
 
-class TestQChem(unittest.TestCase):
-    """
-    Test dumping Q-Chem basis section
-    """
-    def test_dumps(self):
-        data = get_json("pc-2")
-        dump = qchem.dumps(data)
-
-        lines = dump.split("\n")
-        assert lines[0] == "$basis"
-        assert lines[-1] == "$end"
-
-        # Silicon
-        reference_si = """
+# The reference result for the Si section of pc-2
+# in Q-Chem format
+reference_si = """
 S   9  1.00
   120040.0000000    0.00016075000
    17991.0000000     0.0012472000
@@ -78,15 +67,11 @@ D   1  1.00
        0.3800000        1.0000000
 F   1  1.00
        0.5400000        1.0000000
-        """
-        re_si = re.compile(r"\*\*\*\*\nSi  0([^*]*)\*\*\*\*",
-                           re.MULTILINE + re.DOTALL)
-        part_si = re.search(re_si, dump)
-        assert part_si
-        assert reference_si.strip() == part_si.group(1).strip()
+"""
 
-        # Carbon
-        reference_c = """
+# The reference result for the C section of pc-2
+# in Q-Chem format
+reference_c = """
 S   7  1.00
     7857.1000000    0.00056825000
     1178.7000000     0.0043915000
@@ -122,7 +107,29 @@ D   1  1.00
        0.4500000        1.0000000
 F   1  1.00
        0.9500000        1.0000000
-        """
+"""
+
+
+class TestQChem(unittest.TestCase):
+    """
+    Test dumping Q-Chem basis section
+    """
+    def test_dumps(self):
+        data = get_json("pc-2")
+        dump = qchem.dumps(data)
+
+        lines = dump.split("\n")
+        assert lines[0] == "$basis"
+        assert lines[-1] == "$end"
+
+        # Silicon
+        re_si = re.compile(r"\*\*\*\*\nSi  0([^*]*)\*\*\*\*",
+                           re.MULTILINE + re.DOTALL)
+        part_si = re.search(re_si, dump)
+        assert part_si
+        assert reference_si.strip() == part_si.group(1).strip()
+
+        # Carbon
         re_c = re.compile(r"\*\*\*\*\n C  0([^*]*)\*\*\*\*",
                           re.MULTILINE + re.DOTALL)
         part_c = re.search(re_c, dump)
