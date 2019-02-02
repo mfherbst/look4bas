@@ -1,5 +1,5 @@
 from . import gaussian94
-from .testdata import get_g94, get_json
+from ..testdata import get_g94, get_json
 import unittest
 
 
