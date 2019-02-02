@@ -4,7 +4,7 @@ from .constants import NUMBER_TO_AM
 from warnings import warn
 
 
-def dumps(data, elem_list=elements.iupac_list()):
+def dumps(data, elem_list=elements.iupac_list(), **kwargs):
     """
     Take a list of dicts containing the entries
         atnum:     atomic number
@@ -19,9 +19,10 @@ def dumps(data, elem_list=elements.iupac_list()):
     is ignored.
     """
     warn("Dumping basis sets in NWChem format is experimental.")
+    name = kwargs.get("name", "look4bas")
 
     lines = []
-    lines.append("basis \"look4bas\"")
+    lines.append("basis \"{}\"".format(name))
     for atom in data:
         elem = elem_list[atom["atnum"]]["symbol"]
         lines.append("# {}".format(elem_list[atom["atnum"]]["name"]))

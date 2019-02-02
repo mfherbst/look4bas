@@ -3,7 +3,7 @@ from .constants import NUMBER_TO_AM
 from warnings import warn
 
 
-def dumps(data):
+def dumps(data, **kwargs):
     """
     Take a list of dicts containing the entries
         atnum:     atomic number

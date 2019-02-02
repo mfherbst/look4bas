@@ -37,8 +37,7 @@ def dumps(format, data, name=None, description=None):
         "turbomole": turbomole.dumps,
         "pyscf": pyscf.dumps,
     }
-
     if format not in dumps:
         raise NotImplementedError("dumps for format {} is not implemented."
                                   "".format(format))
-    return dumps[format](data)
+    return dumps[format](data, name=name, description=description)

@@ -9,7 +9,7 @@ except ImportError:
         return basis
 
 
-def dumps(data, elem_list=elements.iupac_list()):
+def dumps(data, elem_list=elements.iupac_list(), **kwargs):
     """
     Take a list of dicts containing the entries
         atnum:     atomic number

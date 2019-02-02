@@ -19,7 +19,6 @@ def dumps(data, elem_list=elements.iupac_list(), **kwargs):
     is ignored.
     """
     warn("Dumping basis sets in CFOUR format is experimental.")
-
     name = kwargs.get("name", "look4bas")
     description = kwargs.get("description",
                              "Created by look4bas version "

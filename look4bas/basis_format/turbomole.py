@@ -4,7 +4,7 @@ from .constants import NUMBER_TO_AM
 from warnings import warn
 
 
-def dumps(data, elem_list=elements.iupac_list()):
+def dumps(data, elem_list=elements.iupac_list(), **kwargs):
     """
     Take a list of dicts containing the entries
         atnum:     atomic number
@@ -19,12 +19,12 @@ def dumps(data, elem_list=elements.iupac_list()):
     is ignored.
     """
     warn("Dumping basis sets in Turbomole format is experimental.")
+    name = kwargs.get("name", "look4bas")
 
     lines = []
     lines.append("$basis")
     for atom in data:
         lines.append("*")
-        name = "custom"  # TODO
         symbol = elem_list[atom["atnum"]]["symbol"].lower()
         lines.append("{} {}".format(symbol, name))
         lines.append("*")
