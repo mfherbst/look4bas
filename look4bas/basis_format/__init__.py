@@ -41,3 +41,24 @@ def dumps(format, data, name=None, description=None):
         raise NotImplementedError("dumps for format {} is not implemented."
                                   "".format(format))
     return dumps[format](data, name=name, description=description)
+
+
+def convert_to(package, data):
+    """
+    Take a list of dicts containing the entries
+        atnum:     atomic number
+        functions: list of dict with the keys:
+            angular_momentum  Angular momentum of the function
+            coefficients      List of contraction coefficients
+            exponents         List of contraction exponents
+    and convert them to the python datastructures used by a different
+    program package.
+    """
+    from . import pyscf
+    convert = {
+        "pyscf": pyscf.convert,
+    }
+    if package not in convert:
+        raise NotImplementedError("convert_to for package '{}' is not implemented."
+                                  "".format(package))
+    return convert[package](data)
