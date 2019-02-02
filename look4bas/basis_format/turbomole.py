@@ -35,7 +35,7 @@ def dumps(data, elem_list=elements.iupac_list(), **kwargs):
                                  "in contraction specification need to agree.")
 
             am = NUMBER_TO_AM[fun["angular_momentum"]].lower()
-            lines.append("   {0:2i}  {}".format(am, lfun))
+            lines.append("  {:3d}  {}".format(lfun, am))
 
             for i, coeff in enumerate(fun["coefficients"]):
                 exp = fun["exponents"][i]
