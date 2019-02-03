@@ -89,9 +89,7 @@ so far. Feel free to use it and please get in touch if you encounter
 problems.
 
 ### Gaussian
-```
-TODO
-```
+No documentation for Gaussian is available so far.
 
 ### NWChem
 `look4bas` is able to download a file in the format
