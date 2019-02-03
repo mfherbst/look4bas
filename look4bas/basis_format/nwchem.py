@@ -18,11 +18,8 @@ def dumps(data, elem_list=elements.IUPAC_LIST, **kwargs):
     Note, that as of now potential ECP data present in the basis
     is ignored.
     """
-    warn("Dumping basis sets in NWChem format is experimental.")
-    name = kwargs.get("name", "look4bas")
-
     lines = []
-    lines.append("basis \"{}\"".format(name))
+    lines.append("basis")
     for atom in data:
         elem = elem_list[atom["atnum"]]["symbol"]
         lines.append("# {}".format(elem_list[atom["atnum"]]["name"]))
@@ -48,4 +45,5 @@ def dumps(data, elem_list=elements.IUPAC_LIST, **kwargs):
                  "definitions parsed.")
             break
 
+    lines.append("")
     return "\n".join(lines)

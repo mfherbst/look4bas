@@ -18,35 +18,35 @@ This is only done if the user uses the flag ``--download``, see below.
 ## Commandline features
 - Use **regular expressions** (``grep``) for basis set names and descriptions:
   ```bash
-  look4bas  "double zeta"
+  $ look4bas  "double zeta"
   ```
 - **Ignore case** when searching for patterns:
   ```bash
-  look4bas "cc-pv.z" -i
+  $ look4bas "cc-pv.z" -i
   ```
 - Limit to basis sets which **contain** basis definitions for specific **elements**
   (e.g. helium, neon and argon):
   ```bash
-  look4bas --elements He Ne Ar
+  $ look4bas --elements He Ne Ar
   ```
 - Combine various filters:
   ```bash
-  look4bas --elements H --regex "cc-pv.z" -i "zeta"
+  $ look4bas --elements H --regex "cc-pv.z" -i "zeta"
   ```
 - Not only list the matching basis sets by name and give a short description
   for them, but also **list the elements** for which this basis set defines
   basis functions:
   ```bash
-  look4bas "double zeta" --format elements
+  $ look4bas "double zeta" --format elements
   ```
   The same thing can be achieved by using the pre-defined ``--extra`` output
   format style, i.e
   ```bash
-  look4bas --extra "double zeta"
+  $ look4bas --extra "double zeta"
   ```
 - **Download** the findings in Gaussian94 basis format to the current working directory:
   ```bash
-  look4bas --elements H --regex "cc-pv.z" -i "zeta" --download
+  $ look4bas --elements H --regex "cc-pv.z" -i "zeta" --download
   ```
   Notice, that this will download the basis set definitions for all elements,
   for which this basis set is known at the corresponding source,
@@ -59,8 +59,8 @@ This is only done if the user uses the flag ``--download``, see below.
 ## Installation
 Either you clone the repo and make sure you have the appropriate dependencies
 installed (see next section), or you just use `pip`:
-```
-pip install look4bas
+```bash
+$ pip install look4bas
 ```
 
 ## Requirements and Python dependencies
@@ -94,9 +94,60 @@ TODO
 ```
 
 ### NWChem
+`look4bas` is able to download a file in the format
+expected for the `basis` section of the input file
+for [NWChem](http://www.nwchem-sw.org/).  
+Such a `basis` section has to be supplied after the geometry
+information and before further
+configuration, such as a `task` line or similar.
+One way to conveniently include the downloaded
+basis information is to split the input file into
+two parts, a `head` and a `tail`,
+where the information before the `basis` section
+goes into the `head` file and the information after
+the basis section goes into the `tail` file.
+Once the basis set info has been downloaded using
+`look4bas` one may use `cat` to concatenate all
+files and form a valid NWChem input.
+
+For example, assume we want to perform a
+water geometry optimisation using `pc-2`
+and download the basis with `look4bas`.
+We may proceed as follows:
+
+1. Define a NWChem head file `water_head.nw` with
 ```
-TODO
+geometry
+  h 1 0 0
+  h 0 1 0
+  o 0 0 0
+end
 ```
+and a tail file `water_tail.nw` with
+```
+task scf optimize
+```
+
+2. Download pc-2 basis with `look4bas`
+```bash
+$ look4bas "^pc-2$" --elem H O Fe --down nwchem
+```
+
+3. Combine all files into `water.nw`
+```bash
+$ cat water_head.nw pc-2.nw water_tail.nw > water.nw
+```
+
+4. Run the calculation
+```bash
+$ nwchem water.nw | tee water.out
+```
+
+Alternatively one may obviously just use a plain
+text editor and instead of typing the `basis`
+section read it from the file downloaded
+with `look4bas`.
+
 
 ### ORCA
 Here `look4bas` downloads the basis set in the format expected
@@ -105,7 +156,7 @@ input file, which defines the rest of the calculation parameters,
 one can therefore quickly prepare an input file for
 [Orca](https://orcaforum.kofo.mpg.de/).
 
-For example, consider a water geometry optimisation using `pc-2`.
+For example, consider again the water geometry optimisation using `pc-2`.
 
 1. Define a skeleton ORCA input file `water_skel.in`
 ```
@@ -118,18 +169,18 @@ For example, consider a water geometry optimisation using `pc-2`.
 ```
 
 2. Download the pc-2 basis with `look4bas`
-```
-look4bas "^pc-2$" --elem H O Fe --down orca
+```bash
+$ look4bas "^pc-2$" --elem H O Fe --down orca
 ```
 
 3. Create the actual input file
-```
-cat water_skel.in pc-2.orca water.in
+```bash
+$ cat water_skel.in pc-2.orca water.in
 ```
 
 4. Run ORCA
-```
-orca water.in | tee water.out
+```bash
+$ orca water.in | tee water.out
 ```
 
 ### pyscf
@@ -192,13 +243,13 @@ $end
 ```
 2. We download, for example, the pc-2 basis with `look4bas`
 ```bash
-look4bas "^pc-2$" --elem H O Fe --down qchem
+$ look4bas "^pc-2$" --elem H O Fe --down qchem
 ```
 3. Finally the actual Q-Chem input file `water.qcin` of such a
 job, using exactly the downloaded basis, can be created
 just by:
 ```
-cat water_skel.qcin pc-2.bas > water.qcin
+$ cat water_skel.qcin pc-2.bas > water.qcin
 ```
 
 ### Turbomole

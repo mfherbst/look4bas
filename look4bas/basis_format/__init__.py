@@ -4,7 +4,7 @@
 extension = {
     "cfour": "GENBAS",
     "gaussian94": "g94",
-    "nwchem": "nwchem",
+    "nwchem": "nw",
     "orca": "orca",
     "qchem": "bas",
     "turbomole": "turbomole",
