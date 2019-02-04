@@ -85,7 +85,7 @@ An example for such use can be found in
 [`examples/python_api.py`](examples/python_api.py).
 
 
-## Using look4bas with ... {#formats}
+## Using look4bas with ...  { #formats }
 This section contains some hints how to use `look4bas` specifically
 in combination with a few quantum-chemistry programs. If you use it
 with other codes or feel some explanation is missing,
