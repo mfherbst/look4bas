@@ -20,7 +20,7 @@ setup(
     #
     packages=['look4bas'],
     scripts=["bin/look4bas"],
-    version='0.2.4',
+    version='0.3.0',
     #
     python_requires='>=3.5',
     install_requires=[

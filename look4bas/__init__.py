@@ -5,7 +5,7 @@ from .basis_format import dumps
 import datetime
 import os
 
-__version__ = '0.2.4'
+__version__ = '0.3.0'
 __licence__ = "GPL v3"
 __authors__ = "Michael F. Herbsty"
 __email__ = "info@michael-herbst.com"
