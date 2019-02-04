@@ -52,13 +52,13 @@ This is only done if the user uses the flag ``--download``, see below.
   for which this basis set is known at the corresponding source,
   even if once uses ``--elements`` to filter for particular elements.
 
-- [Other basis formats](#formats) are supported, too. For example
+- [Other basis formats](#using-look4bas-with-) are supported, too. For example
   ```bash
   $ look4bas --elements H --regex "cc-pv.z" -i "zeta" --download orca
   ```
   downloads in the format supported by ORCA.
   For a list of instructions how to use `look4bas`
-  with certain quantum chemistry packages, [see below](#formats).
+  with certain quantum chemistry packages, [see below](#using-look4bas-with-).
 
 - More info about the commandline flags of ``look4bas`` can be obtained
   using ``look4bas -h``
@@ -85,7 +85,7 @@ An example for such use can be found in
 [`examples/python_api.py`](examples/python_api.py).
 
 
-## Using look4bas with ...  { #formats }
+## Using look4bas with ...
 This section contains some hints how to use `look4bas` specifically
 in combination with a few quantum-chemistry programs. If you use it
 with other codes or feel some explanation is missing,
