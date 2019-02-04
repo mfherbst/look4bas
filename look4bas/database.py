@@ -409,7 +409,7 @@ class Database:
         internet source.
 
         @param basisset     Basis set dict as returned by search_basisset or
-                             basis set id.
+                            basis set id.
         """
         if isinstance(basisset, int):
             basset_id = basisset
@@ -436,8 +436,10 @@ class Database:
 
     def lookup_basisset_full(self, basset_id):
         raise NotImplementedError("Not implemented in the basic database. "
-                                  "Use api.Database object for this purpose.")
+                                  "Use look4bas.api.Database object for this purpose.")
 
+    # TODO Allow exact search for something like name as well
+    #      (i.e. no substring search)
     def search_basisset(self, name=None, description=None, ignore_case=False,
                         has_atnums=[], sources=[], regex=False, pattern=None):
         """

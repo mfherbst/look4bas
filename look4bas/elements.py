@@ -10,7 +10,7 @@ adhering to the IUPAC naming convention.
 import collections
 
 
-def iupac_list():
+def build_iupac_list():
     """
     Build the list of elements per atomic number according to the IUPAC
     convention.
@@ -82,3 +82,6 @@ def iupac_list():
       Element(117, "Ts", "tennessine"),     Element(118, "Og", "oganesson"),
     ]
     return [dict(e._asdict()) for e in elist]
+
+"""IUPAC list of elements"""
+IUPAC_LIST = build_iupac_list()

@@ -1,14 +1,7 @@
 #!/usr/bin/env python3
 
-from . import gaussian94
+from . import basis_format
 import os
-
-""" Dictionary of the basis set formats supported by this script,
-    mapped to the default file extension used.
-"""
-formats = {
-    "Gaussian94": "g94",
-}
 
 
 def normalise_name(name):
@@ -21,14 +14,14 @@ def save_basisset(bset, fmts, destination="."):
     Save the provided basis set in the given formats
     to the provided destination directory.
     """
+    kwargs = {"name": bset["name"], }
+    if "description" in bset:
+        kwargs["description"] = bset["description"]
 
     for fmt in fmts:
-        if fmt == "Gaussian94":
-            data = gaussian94.dumps(bset["atoms"])
-        else:
-            raise NotImplementedError("Format {} not implemented.".format(fmt))
-
-        path = destination + "/" + normalise_name(bset["name"]) + "." + formats[fmt]
+        data = basis_format.dumps(fmt, bset["atoms"], **kwargs)
+        path = (destination + "/" + normalise_name(bset["name"])
+                + "." + basis_format.extension[fmt])
         if os.path.exists(path):
             print("   Warn: Skipping " + path + " since file already exists")
         else:

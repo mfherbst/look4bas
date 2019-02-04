@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-from . import elements
+from .. import elements
 from warnings import warn
-
-
-NUMBER_TO_AM = ["S", "P", "D", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O"]
+from .constants import NUMBER_TO_AM
 
 
 def __float_fortran(string):
@@ -224,7 +222,7 @@ def __parse_ecp_section(ecp_block, elem_symbols_lower):
     return ret
 
 
-def loads(string, elem_list=elements.iupac_list()):
+def loads(string, elem_list=elements.IUPAC_LIST):
     """
     Parse a string, which represents a basis set file in g94
     format and return the defined basis functions
@@ -307,7 +305,7 @@ def loads(string, elem_list=elements.iupac_list()):
     return ret
 
 
-def dumps(data, elem_list=elements.iupac_list()):
+def dumps(data, elem_list=elements.IUPAC_LIST, **kwargs):
     """
     Take a list of dicts containing the entries
         atnum:     atomic number
@@ -329,18 +327,20 @@ def dumps(data, elem_list=elements.iupac_list()):
             lfun = len(fun["coefficients"])
             if lfun != len(fun["exponents"]):
                 raise ValueError("Length of coefficients and length of exponents "
-                                 "in contraction specification need to agree")
+                                 "in contraction specification need to agree.")
 
             am = NUMBER_TO_AM[fun["angular_momentum"]]
-            lines.append(am + "   " + str(lfun) + "   1.00")
+            lines.append("{}   {}   1.00".format(am, lfun))
 
             for i, coeff in enumerate(fun["coefficients"]):
                 exp = fun["exponents"][i]
-                fmt = "{0:15.7f}             {1: #11.8G}"
-                lines.append(fmt.format(exp, coeff))
-        if "ecp" in atom:
-            warn("look4bas.gaussian94.dumps currently ignores any ECP "
-                 "definitions parsed.")
+                lines.append("{0:15.7f}             {1: #11.8G}".format(exp, coeff))
     lines.append("****\n")
+
+    for atom in data:
+        if "ecp" in atom:
+            warn(dumps.__name__ + " currently ignores any ECP "
+                 "definitions parsed.")
+            break
 
     return "\n".join(lines)

@@ -2,7 +2,7 @@
 
 import shutil
 import re
-from .elements import iupac_list
+from . import elements
 
 __strip_ANSI_escapes = re.compile(r"""
   \x1b     # literal ESC
@@ -100,7 +100,7 @@ def print_basissets(findings, highlight_atnums=[],
                         to an appropriate colour
     """
     # Get IUPAC element list
-    elem_list = iupac_list()
+    elem_list = elements.IUPAC_LIST
 
     def format_element_list(basset):
         """

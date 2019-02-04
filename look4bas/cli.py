@@ -4,7 +4,7 @@
 
 
 import argparse
-from look4bas import display, store, config, elements
+from look4bas import display, store, config, elements, basis_format
 import look4bas
 
 
@@ -35,7 +35,7 @@ def add_cmd_args_to(parser):
     mode.add_argument("--list", action='store_true', help="List the matching basis "
                       "sets (Default)")
     mode.add_argument("--download", nargs="*", metavar='format',
-                      choices=store.formats,
+                      choices=basis_format.extension,
                       help="Download the matching basis sets in the requested formats "
                       "(Default: " + " ".join(config.default_download_formats) + ") "
                       "to the directory specified by --destination. ")
@@ -92,8 +92,7 @@ def cmd_post_parsing_cleanup(args):
 
     # If filtering for elements is requested, transform elements
     # to atomic numbers
-    elem_list = elements.iupac_list()
-    elem_symbols_lower = [e["symbol"].lower() for e in elem_list]
+    elem_symbols_lower = [e["symbol"].lower() for e in elements.IUPAC_LIST]
 
     def to_atnum(sym):
         return elem_symbols_lower.index(sym.lower())
@@ -144,8 +143,9 @@ def download_results(args, data_base, findings):
     """
     Download all findings into the current working directory.
     """
-    # Append at least the default format to download
-    args.download.extend(config.default_download_formats)
+    if len(args.download) == 0:
+        # Append at least the default format to download
+        args.download.extend(config.default_download_formats)
 
     # TODO Later we probably want a more elaborate selection
     #      mechanism where one can select amongst the matches

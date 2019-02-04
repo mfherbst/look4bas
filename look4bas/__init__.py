@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from . import database as dbcache
 from . import emsl, ccrepo, elements, tlsutil
+from .basis_format import dumps
 import datetime
 import os
 
@@ -9,7 +10,7 @@ __licence__ = "GPL v3"
 __authors__ = "Michael F. Herbsty"
 __email__ = "info@michael-herbst.com"
 
-__all__ = ["Database"]
+__all__ = ["Database", "dumps"]
 
 
 available_sources = ["EMSL", "ccrepo"]
@@ -61,7 +62,7 @@ class Database(dbcache.Database):
         ccrepo.add_to_database(self)
         self.create_table_of_elements(
             "IUPAC",
-            [e for e in elements.iupac_list() if e["atnum"] > 0]
+            [e for e in elements.IUPAC_LIST if e["atnum"] > 0]
         )
 
     def update(self, url="https://get.michael-herbst.com/look4bas/basis_sets.db"):
