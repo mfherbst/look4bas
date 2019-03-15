@@ -264,6 +264,9 @@ so far. Feel free to use it and please get in touch if you encounter
 problems.
 
 
-## Citing
-If you use the script for your research, please cite this software:
-[![DOI](https://zenodo.org/badge/89177225.svg)](https://zenodo.org/badge/latestdoi/89177225)
+## Citation [![DOI](https://zenodo.org/badge/89177225.svg)](https://zenodo.org/badge/latestdoi/89177225) [![bibtex](https://img.shields.io/badge/bibtex-download_citation-red.svg)](https://michael-herbst.com/publications/2018.03.05_look4bas.bib)
+You can cite `look4bas` using this
+[`bibtex` entry](https://michael-herbst.com/publications/2018.03.05_look4bas.bib)
+or simply as  
+
+Michael F. Herbst. *look4bas: Interactively search for Gaussian basis sets.* (2018). DOI [10.5281/zenodo.1188991](https://doi.org/10.5281/zenodo.1188991).
