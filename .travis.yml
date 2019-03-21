@@ -15,7 +15,7 @@ install:
   - travis_retry pip install flake8 pylint pytest
 
 script:  # This is the 'test' build stage
-  - pytest
+  - python3 setup.py test
 
 # These jobes are only run with the first python version
 # mentioned in the initial list
