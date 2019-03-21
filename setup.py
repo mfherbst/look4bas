@@ -1,11 +1,7 @@
-"""Setup for look4bas"""
+#!/usr/bin/env python3
 
-# Use setuptools for these commands (they don't work well or at all
-# with distutils).  For normal builds use distutils.
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+"""Setup for look4bas"""
+from setuptools import find_packages, setup
 
 setup(
     name='look4bas',
@@ -18,7 +14,7 @@ setup(
     author_email="info@michael-herbst.com",
     license="GPL v3",
     #
-    packages=['look4bas'],
+    packages=find_packages(exclude=["*.test*", "test"]),
     scripts=["bin/look4bas"],
     version='0.3.0',
     #
