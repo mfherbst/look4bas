@@ -42,7 +42,7 @@ setup(
     #
     packages=find_packages(exclude=["*.test*", "test"]),
     scripts=["bin/look4bas"],
-    version='0.3.0',
+    version='0.3.1',
     #
     python_requires='>=3.5',
     install_requires=[
